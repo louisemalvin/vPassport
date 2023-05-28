@@ -1,4 +1,4 @@
-package com.example.vpassport
+package com.example.vpassport.data.model
 
 data class Passport(
     val docType: String,

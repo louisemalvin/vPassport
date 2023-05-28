@@ -2,6 +2,5 @@
 <resources>
 
     <style name="Theme.VPassport" parent="android:Theme.Material.NoActionBar">
-        <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
 </resources>

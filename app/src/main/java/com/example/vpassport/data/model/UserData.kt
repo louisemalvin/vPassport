@@ -1,4 +1,4 @@
-package com.example.vpassport
+package com.example.vpassport.data.model
 
 import androidx.compose.ui.graphics.vector.ImageVector
 

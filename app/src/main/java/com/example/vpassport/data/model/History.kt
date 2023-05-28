@@ -1,10 +1,9 @@
-package com.example.vpassport
+package com.example.vpassport.data.model
 
 import android.icu.util.Calendar
-import java.util.Date
 
 data class History(
     val site: String,
-    val date: Date,
+    val date: Calendar,
     val isAllowed: Boolean
 )
