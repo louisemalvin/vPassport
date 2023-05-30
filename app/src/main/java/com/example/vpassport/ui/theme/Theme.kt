@@ -1,5 +1,6 @@
 package com.example.vpassport.ui.theme
 
+import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -8,10 +9,12 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import com.example.compose.md_theme_dark_background
 import com.example.compose.md_theme_dark_error
 import com.example.compose.md_theme_dark_errorContainer
@@ -153,7 +156,10 @@ fun VPassportTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
-
+    CompositionLocalProvider {
+        LocalIcon provides Icon()
+        LocalSpacing provides Spacing()
+    }
     val systemUiController = rememberSystemUiController()
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -164,9 +170,8 @@ fun VPassportTheme(
             systemUiController.setNavigationBarColor(
                 color = Color.Transparent
             )
-//            val window = (view.context as Activity).window
-//            window.statusBarColor = colorScheme.primary.toArgb()
-//            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            val window = (view.context as Activity).window
+            WindowCompat.setDecorFitsSystemWindows(window, false)
         }
     }
 

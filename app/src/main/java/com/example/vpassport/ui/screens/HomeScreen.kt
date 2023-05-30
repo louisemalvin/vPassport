@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.vpassport.ui.screens
 
 import android.icu.util.GregorianCalendar
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -25,32 +28,27 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.Call
-import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -62,37 +60,112 @@ import androidx.compose.ui.unit.sp
 import com.example.vpassport.R
 import com.example.vpassport.data.model.History
 import com.example.vpassport.data.model.Passport
-import com.example.vpassport.data.model.UserData
+import com.example.vpassport.data.model.ProfileEntry
+import com.example.vpassport.ui.theme.icon
+import com.example.vpassport.ui.theme.spacing
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreen(passport: Passport, histories: List<History>) {
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberStandardBottomSheetState(initialValue = SheetValue.PartiallyExpanded)
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
+    BottomSheetScaffold(
+        scaffoldState = bottomSheetScaffoldState,
+        sheetTonalElevation = 20.dp,
+        sheetPeekHeight = 0.dp,
+        sheetContent = {
+            Box(
+                modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(650.dp)
+            ) {
+                UserProfile(passport = passport)
+            }
+
+        },
+        sheetContainerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
+            modifier = Modifier
+                .safeDrawingPadding()
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(it)
+                .padding(horizontal = MaterialTheme.spacing.medium)
+        ) {
+            Spacer(Modifier.size(MaterialTheme.spacing.small))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "ID Card",
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = "Settings",
+                            modifier = Modifier.size(MaterialTheme.icon.small)
+                        )
+                    }
+                    Spacer(Modifier.size(MaterialTheme.spacing.small))
+                    FloatingActionButton(
+                        onClick = { /*TODO*/ },
+                        modifier = Modifier
+                            .size(MaterialTheme.icon.large)
+                            .align(Alignment.CenterVertically)
+                    ) {
+                        Icon(
+                            painterResource(id = R.drawable.ic_qr_scanner),
+                            contentDescription = "QR Scanner",
+                            Modifier.size(MaterialTheme.icon.medium)
+                        )
+                    }
+                }
+
+            }
+
+            Spacer(modifier = Modifier.size(MaterialTheme.spacing.medium))
+            UserCard(passport = passport, scaffoldState = bottomSheetScaffoldState, scope = scope)
+            Spacer(modifier = Modifier.size(MaterialTheme.spacing.medium))
+            Histories(histories = histories)
+        }
+    }
+}
 
 @Composable
-fun UserEntry(userData: UserData) {
+fun UserEntry(profile: ProfileEntry) {
     Row() {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.size(50.dp)
-        ) {
-            Icon(
-                imageVector = userData.icon,
-                contentDescription = "Icon",
-                modifier = Modifier.size(30.dp)
-            )
-        }
+        Icon(
+            painterResource(id = profile.id),
+            contentDescription = null,
+            modifier = Modifier
+                .size(MaterialTheme.icon.medium)
+                .align(Alignment.CenterVertically)
+        )
+        Spacer(modifier = Modifier.size(MaterialTheme.spacing.small))
         Column(
             modifier = Modifier.padding(vertical = 5.dp)
         ) {
             Text(
-                fontSize = 8.sp,
-                text = userData.title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary
+                text = stringResource(id = profile.title),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
             )
             Text(
-                fontSize = 20.sp,
-                text = userData.data,
-                style = MaterialTheme.typography.bodySmall,
+                text = profile.data,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary
             )
         }
@@ -100,27 +173,111 @@ fun UserEntry(userData: UserData) {
 }
 
 @Composable
-fun UserProfile(userProfile: List<UserData>) {
+fun UserProfile(passport: Passport) {
+    val profileEntries = ArrayList<ProfileEntry>()
+    profileEntries.add(
+        ProfileEntry(
+            title = R.string.user_docnum,
+            id = R.drawable.numbers_fill1_wght400_grad0_opsz48,
+            data = passport.docNum,
+        )
+    )
+    profileEntries.add(
+        ProfileEntry(
+            title = R.string.user_name,
+            id = R.drawable.badge_fill1_wght400_grad0_opsz48,
+            data = passport.name,
+        )
+    )
+    profileEntries.add(
+        ProfileEntry(
+            title = R.string.user_birthdate,
+            id = R.drawable.cake_fill1_wght400_grad0_opsz48,
+            data = passport.birthDate,
+        )
+    )
+    profileEntries.add(
+        ProfileEntry(
+            title = R.string.user_gender,
+            id = R.drawable.wc_fill1_wght400_grad0_opsz48,
+            data = passport.sex,
+        )
+    )
+    profileEntries.add(
+        ProfileEntry(
+            title = R.string.user_nationality,
+            id = R.drawable.language_fill1_wght400_grad0_opsz48,
+            data = passport.nationality,
+        )
+    )
+    profileEntries.add(
+        ProfileEntry(
+            title = R.string.user_issuing_authority,
+            id = R.drawable.assured_workload_fill1_wght400_grad0_opsz48,
+            data = passport.issuer,
+        )
+    )
+    profileEntries.add(
+        ProfileEntry(
+            title = R.string.user_issue_date,
+            id = R.drawable.event_available_fill1_wght400_grad0_opsz48,
+            data = passport.issueDate,
+        )
+    )
+    profileEntries.add(
+        ProfileEntry(
+            title = R.string.user_expiry_date,
+            id = R.drawable.event_busy_fill1_wght400_grad0_opsz48,
+            data = passport.expiryDate,
+        )
+    )
+
+
     Box(
         modifier = Modifier
+            .padding(horizontal = MaterialTheme.spacing.medium)
             .fillMaxWidth()
     ) {
         Column() {
-            userProfile.forEach {
-                UserEntry(userData = it)
+            Box (
+                Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text(
+                    text = "Profile Details",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+            Spacer(modifier = Modifier.size(MaterialTheme.spacing.medium))
+            Surface {
+                Column (
+                    modifier = Modifier
+                        .padding(horizontal = MaterialTheme.spacing.medium)
+                ){
+                    profileEntries.forEach {
+                        Spacer(modifier = Modifier.size(MaterialTheme.spacing.small))
+                        UserEntry(profile = it)
+                        Spacer(modifier = Modifier.size(MaterialTheme.spacing.small))
+                        Divider()
+                    }
+                }
+
             }
         }
+
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserCard(passport: Passport, sheetState: SheetState, scope:CoroutineScope) {
+fun UserCard(passport: Passport, scaffoldState: BottomSheetScaffoldState, scope: CoroutineScope) {
     Surface(
         onClick = {
             scope.launch {
-            if (!sheetState.hasExpandedState)
-                sheetState.expand()
+                if (scaffoldState.bottomSheetState.currentValue != SheetValue.Expanded)
+                    scaffoldState.bottomSheetState.expand()
+                else
+                    scaffoldState.bottomSheetState.partialExpand()
             }
         },
         shadowElevation = 5.dp,
@@ -261,7 +418,7 @@ fun History(history: History) {
                 )
                 Text(
                     text = "2000-10-20",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.tertiary
                 )
             }
@@ -293,6 +450,7 @@ fun Histories(histories: List<History>) {
                     Divider(thickness = Dp.Hairline)
                 }
             }
+
         }
     }
 
@@ -320,17 +478,6 @@ fun DefaultHistory() {
     Histories(histories)
 }
 
-@Composable
-fun DefaultData() {
-    UserEntry(
-        UserData(
-            title = "Test",
-            data = "Hello World",
-            icon = Icons.Rounded.ShoppingCart
-        )
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DefaultCard() {
@@ -347,73 +494,7 @@ fun DefaultCard() {
     )
 
     val defaultScope = rememberCoroutineScope()
-    val defaultSheetState = rememberBottomSheetScaffoldState().bottomSheetState
-
-    val defaultProfile = ArrayList<UserData>()
-    defaultProfile.add(
-        UserData(
-            title = "Document Type",
-            data = defaultPass.docType,
-            icon = Icons.Rounded.ShoppingCart
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Issuer",
-            data = defaultPass.issuer,
-            icon = Icons.Rounded.Share
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Name",
-            data = defaultPass.name,
-            icon = Icons.Rounded.Person
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Document Number",
-            data = defaultPass.docNum,
-            icon = Icons.Rounded.FavoriteBorder
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Nationality",
-            data = defaultPass.nationality,
-            icon = Icons.Rounded.AccountCircle
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Birth Date",
-            data = defaultPass.birthDate,
-            icon = Icons.Rounded.Call
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Sex",
-            data = defaultPass.sex,
-            icon = Icons.Rounded.Person
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Expiry Date",
-            data = defaultPass.expiryDate,
-            icon = Icons.Rounded.MoreVert
-        )
-    )
-
+    val defaultSheetState = rememberBottomSheetScaffoldState()
     UserCard(defaultPass, defaultSheetState, defaultScope)
 }
 
@@ -433,141 +514,39 @@ fun DefaultProfile() {
         expiryDate = "2025-01-01"
     )
 
-    val defaultProfile = ArrayList<UserData>()
-    defaultProfile.add(
-        UserData(
-            title = "Document Type",
-            data = defaultPass.docType,
-            icon = Icons.Rounded.ShoppingCart
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Issuer",
-            data = defaultPass.issuer,
-            icon = Icons.Rounded.Share
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Name",
-            data = defaultPass.name,
-            icon = Icons.Rounded.Person
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Document Number",
-            data = defaultPass.docNum,
-            icon = Icons.Rounded.FavoriteBorder
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Nationality",
-            data = defaultPass.nationality,
-            icon = Icons.Rounded.AccountCircle
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Birth Date",
-            data = defaultPass.birthDate,
-            icon = Icons.Rounded.Call
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Sex",
-            data = defaultPass.sex,
-            icon = Icons.Rounded.Person
-        )
-    )
-
-    defaultProfile.add(
-        UserData(
-            title = "Expiry Date",
-            data = defaultPass.expiryDate,
-            icon = Icons.Rounded.MoreVert
-        )
-    )
-
-    UserProfile(defaultProfile)
+    UserProfile(defaultPass)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showSystemUi = true)
 @Composable
 fun DefaultApp() {
-    BottomSheetScaffold(
-        sheetTonalElevation = 20.dp,
-        sheetPeekHeight = 0.dp,
-        sheetContent = {
-            Box(
-                modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(500.dp)
-            ) {
-                DefaultProfile()
-            }
-
-        },
-        sheetContainerColor = MaterialTheme.colorScheme.surfaceVariant
-    ) {
-        Column(
-            modifier = Modifier
-                .windowInsetsPadding(WindowInsets.statusBars)
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(it)
-                .padding(horizontal = 20.dp)
-        ) {
-            Spacer(modifier = Modifier.size(10.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "ID Card",
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(Icons.Filled.Settings, contentDescription = null, Modifier.size(30.dp))
-                    }
-                    Spacer(Modifier.size(10.dp))
-                    FloatingActionButton(
-                        onClick = { /*TODO*/ },
-                        modifier = Modifier
-                            .size(60.dp)
-                            .align(Alignment.CenterVertically)
-                    ) {
-                        Icon(
-                            painterResource(id = R.drawable.ic_qr_scanner),
-                            contentDescription = null,
-                            Modifier.size(40.dp)
-                        )
-                    }
-                }
-
-            }
-
-            Spacer(modifier = Modifier.size(20.dp))
-            DefaultCard()
-            Spacer(modifier = Modifier.size(20.dp))
-            DefaultHistory()
-        }
-    }
-
+    val defaultPass = Passport(
+        docType = "Passport",
+        issuer = "ABC Country",
+        name = "John Smith",
+        docNum = "A1234567",
+        nationality = "Country A",
+        birthDate = "1990-01-01",
+        sex = "Male",
+        issueDate = "2022-01-01",
+        expiryDate = "2025-01-01"
+    )
+    val histories = ArrayList<History>()
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("wikipedia.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
+    HomeScreen(passport = defaultPass, histories = histories)
 }
