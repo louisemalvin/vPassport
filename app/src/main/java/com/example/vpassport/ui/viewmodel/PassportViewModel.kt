@@ -1,11 +1,30 @@
 package com.example.vpassport.ui.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.vpassport.Passport
+import com.example.vpassport.data.repo.PassportRepository
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class PassportViewModel(application: Application): AndroidViewModel(application) {
+class PassportViewModel @Inject constructor(
+    private val passportRepository: PassportRepository
+) : ViewModel() {
 
-//    private val repository = DefaultPassportRepository(application)
+    private lateinit var _passport: LiveData<Passport>
+    val passport: LiveData<Passport> = _passport
 
+    private fun getPassport() = viewModelScope.launch {
+        _passport = passportRepository.getPassport()
+    }
+
+    fun setPassport(passport: Passport) = viewModelScope.launch {
+        passportRepository.setPassport(passport)
+    }
+
+    fun resetPassport() = viewModelScope.launch {
+        passportRepository.resetPassport()
+    }
 
 }

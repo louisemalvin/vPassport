@@ -51,7 +51,7 @@ object AppModule {
     @Provides
     @Reusable
     fun providePassportDataStore(@ApplicationContext context: Context) =
-        context.appSettingsDataStore
+        context.passportDataStore
 
     @Provides
     @Reusable
