@@ -2,7 +2,6 @@
 
 package com.example.vpassport.ui.screens
 
-import android.icu.util.GregorianCalendar
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,18 +48,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.vpassport.R
-import com.example.vpassport.data.model.History
 import com.example.vpassport.data.model.Passport
 import com.example.vpassport.data.model.ProfileEntry
+import com.example.vpassport.data.model.history.History
+import com.example.vpassport.data.model.history.HistoryEvent
+import com.example.vpassport.data.model.history.HistoryState
+import com.example.vpassport.ui.screens.dialogs.ConfirmationDialog
 import com.example.vpassport.ui.theme.icon
 import com.example.vpassport.ui.theme.spacing
 import kotlinx.coroutines.CoroutineScope
@@ -68,7 +67,11 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(passport: Passport, histories: List<History>) {
+fun HomeScreen(
+    passport: Passport,
+    state: HistoryState,
+    onEvent: (HistoryEvent) -> Unit
+) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberStandardBottomSheetState(initialValue = SheetValue.PartiallyExpanded)
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
@@ -89,6 +92,9 @@ fun HomeScreen(passport: Passport, histories: List<History>) {
         },
         sheetContainerColor = MaterialTheme.colorScheme.surface
     ) {
+        if(state.isAddingHistory) {
+            ConfirmationDialog(state = state, onEvent = onEvent)
+        }
         Column(
             modifier = Modifier
                 .safeDrawingPadding()
@@ -121,7 +127,9 @@ fun HomeScreen(passport: Passport, histories: List<History>) {
                     }
                     Spacer(Modifier.size(MaterialTheme.spacing.small))
                     FloatingActionButton(
-                        onClick = { /*TODO*/ },
+                        onClick = {
+                                  onEvent(HistoryEvent.ShowDialog)
+                        },
                         modifier = Modifier
                             .size(MaterialTheme.icon.large)
                             .align(Alignment.CenterVertically)
@@ -139,7 +147,7 @@ fun HomeScreen(passport: Passport, histories: List<History>) {
             Spacer(modifier = Modifier.size(MaterialTheme.spacing.medium))
             UserCard(passport = passport, scaffoldState = bottomSheetScaffoldState, scope = scope)
             Spacer(modifier = Modifier.size(MaterialTheme.spacing.medium))
-            Histories(histories = histories)
+            Histories(state)
         }
     }
 }
@@ -294,11 +302,19 @@ fun UserCard(passport: Passport, scaffoldState: BottomSheetScaffoldState, scope:
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth(1f)
             ) {
-                Text(text = passport.docNum)
-                Text(text = "DE - VPASS")
+                Text(
+                    text = passport.docNum,
+                    style = MaterialTheme.typography.labelMedium
+                    )
+                Text(
+                    text = stringResource(R.string.card_pass),
+                    style = MaterialTheme.typography.labelMedium
+                )
             }
             Spacer(modifier = Modifier.size(20.dp))
-            Row() {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Image(
                     painter = painterResource(id = R.drawable.person),
                     contentDescription = "user image",
@@ -308,40 +324,20 @@ fun UserCard(passport: Passport, scaffoldState: BottomSheetScaffoldState, scope:
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 Column() {
-                    Text(text = buildAnnotatedString {
-                        withStyle(
-                            style = SpanStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 30.sp
-                            )
-                        ) {
-                            append("John Smith \n")
-                        }
-                        withStyle(
-                            style = SpanStyle(
-                                fontWeight = FontWeight.Light,
-                                fontSize = 15.sp
-                            )
-                        ) {
-                            append("Birth Date\n")
-                        }
-                        withStyle(
-                            style = SpanStyle(
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 15.sp
-                            )
-                        ) {
-                            append("01 January 1900\n")
-                        }
-                        withStyle(
-                            style = SpanStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp
-                            )
-                        ) {
-                            append("Female")
-                        }
-                    })
+                    Text(
+                        text = passport.name,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    Column {
+                        Text(
+                            text = passport.sex,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                        Text(
+                            text = passport.birthDate,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.size(20.dp))
@@ -349,42 +345,26 @@ fun UserCard(passport: Passport, scaffoldState: BottomSheetScaffoldState, scope:
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth(1f)
             ) {
-                Text(text = buildAnnotatedString {
-                    withStyle(
-                        style = SpanStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 10.sp
-                        )
-                    ) {
-                        append("Created\n")
-                    }
-                    withStyle(
-                        style = SpanStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
-                    ) {
-                        append("01/01/2020")
-                    }
-                })
-                Text(text = buildAnnotatedString {
-                    withStyle(
-                        style = SpanStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 10.sp
-                        )
-                    ) {
-                        append("Valid Until\n")
-                    }
-                    withStyle(
-                        style = SpanStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
-                    ) {
-                        append("01/01/2025")
-                    }
-                })
+                Column {
+                    Text(
+                        text = stringResource(id = R.string.card_issue),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                    Text(
+                        text = passport.issueDate,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+                Column {
+                    Text(
+                        text = stringResource(id = R.string.card_expiry),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                    Text(
+                        text = passport.expiryDate,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
             }
         }
     }
@@ -416,8 +396,15 @@ fun History(history: History) {
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onBackground
                 )
+                val year = history.date.year.toString().padStart(2, '0')
+                val month = history.date.monthValue.toString().padStart(2, '0')
+                val day = history.date.dayOfMonth.toString().padStart(2, '0')
+                val hour = history.date.hour.toString().padStart(2, '0')
+                val minute = history.date.minute.toString().padStart(2, '0')
+                val second = history.date.second.toString().padStart(2, '0')
+
                 Text(
-                    text = "2000-10-20",
+                    text = "$year/$month/$day - $hour:$minute:$second",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.tertiary
                 )
@@ -431,7 +418,7 @@ fun History(history: History) {
 }
 
 @Composable
-fun Histories(histories: List<History>) {
+fun Histories(state: HistoryState) {
     Box(
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -445,7 +432,7 @@ fun Histories(histories: List<History>) {
             LazyColumn(
                 modifier = Modifier.fillMaxHeight()
             ) {
-                items(histories) {
+                items(state.histories) {
                     History(history = it)
                     Divider(thickness = Dp.Hairline)
                 }
@@ -458,24 +445,8 @@ fun Histories(histories: List<History>) {
 
 @Composable
 fun DefaultHistory() {
-    val histories = ArrayList<History>()
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("wikipedia.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-
-    Histories(histories)
+    val state = HistoryState()
+    Histories(state)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -517,36 +488,21 @@ fun DefaultProfile() {
     UserProfile(defaultPass)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview(showSystemUi = true)
-@Composable
-fun DefaultApp() {
-    val defaultPass = Passport(
-        docType = "Passport",
-        issuer = "ABC Country",
-        name = "John Smith",
-        docNum = "A1234567",
-        nationality = "Country A",
-        birthDate = "1990-01-01",
-        sex = "Male",
-        issueDate = "2022-01-01",
-        expiryDate = "2025-01-01"
-    )
-    val histories = ArrayList<History>()
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("wikipedia.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    histories.add(History("google.com", GregorianCalendar(2000, 1, 1, 10, 10), true))
-    HomeScreen(passport = defaultPass, histories = histories)
-}
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Preview(showSystemUi = true)
+//@Composable
+//fun DefaultApp() {
+//    val defaultPass = Passport(
+//        docType = "Passport",
+//        issuer = "ABC Country",
+//        name = "John Smith",
+//        docNum = "A1234567",
+//        nationality = "Country A",
+//        birthDate = "1990-01-01",
+//        sex = "Male",
+//        issueDate = "2022-01-01",
+//        expiryDate = "2025-01-01"
+//    )
+//
+//    HomeScreen(passport = defaultPass, onEvent = )
+//}
