@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option java_package = "com.example.vpassport";
+option java_multiple_files = true;
+
+message AppSettings {
+
+    bool darkMode = 1;
+    Language language = 2;
+
+    enum Language {
+        ENGLISH = 0;
+        GERMAN = 1;
+    }
+}

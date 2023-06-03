@@ -1,4 +1,4 @@
-package com.example.vpassport.data.states
+package com.example.vpassport.util.states
 
 import com.example.vpassport.data.model.History
 

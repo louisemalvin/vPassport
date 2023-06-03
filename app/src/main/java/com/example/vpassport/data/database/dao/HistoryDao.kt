@@ -1,4 +1,4 @@
-package com.example.vpassport.data.dao
+package com.example.vpassport.data.database.dao
 
 import androidx.room.Dao
 import androidx.room.Delete

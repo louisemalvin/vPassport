@@ -57,9 +57,9 @@ import com.example.vpassport.R
 import com.example.vpassport.data.model.Passport
 import com.example.vpassport.data.model.ProfileEntry
 import com.example.vpassport.data.model.History
-import com.example.vpassport.data.events.HistoryEvent
-import com.example.vpassport.data.states.HistoryState
-import com.example.vpassport.ui.screens.dialogs.ConfirmationDialog
+import com.example.vpassport.util.events.HistoryEvent
+import com.example.vpassport.util.states.HistoryState
+import com.example.vpassport.ui.dialogs.ConfirmationDialog
 import com.example.vpassport.ui.theme.icon
 import com.example.vpassport.ui.theme.spacing
 import kotlinx.coroutines.CoroutineScope

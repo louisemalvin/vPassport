@@ -5,6 +5,7 @@ plugins {
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     kotlin("plugin.serialization") version "1.8.21"
+    id("com.google.protobuf") version "0.9.3"
 
 }
 
@@ -81,12 +82,30 @@ dependencies {
     ksp("androidx.room:room-compiler:$room_version")
     implementation("com.google.dagger:hilt-android:2.44")
     kapt("com.google.dagger:hilt-android-compiler:2.44")
-    implementation("androidx.datastore:datastore:1.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
+    // Proto datastore
+    implementation("androidx.datastore:datastore-core:1.0.0")
+    implementation("com.google.protobuf:protobuf-javalite:3.18.0")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+}
 
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.17.3"
+    }
+
+    generateProtoTasks {
+        all().forEach {
+            it.builtins {
+                create("java") {
+                    option("lite")
+                }
+            }
+        }
+    }
 }
 
 kapt {
-    correctErrorTypes = true
+correctErrorTypes = true
 }

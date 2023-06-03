@@ -1,11 +1,11 @@
-package com.example.vpassport.viewmodel
+package com.example.vpassport.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vpassport.data.model.History
-import com.example.vpassport.data.dao.HistoryDao
-import com.example.vpassport.data.events.HistoryEvent
-import com.example.vpassport.data.states.HistoryState
+import com.example.vpassport.data.database.dao.HistoryDao
+import com.example.vpassport.util.events.HistoryEvent
+import com.example.vpassport.util.states.HistoryState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine

@@ -1,4 +1,4 @@
-package com.example.vpassport.ui.screens.dialogs
+package com.example.vpassport.ui.dialogs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.AlertDialog
@@ -7,8 +7,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.example.vpassport.data.events.HistoryEvent
-import com.example.vpassport.data.states.HistoryState
+import com.example.vpassport.util.events.HistoryEvent
+import com.example.vpassport.util.states.HistoryState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

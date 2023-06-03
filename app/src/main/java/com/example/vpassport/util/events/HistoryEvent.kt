@@ -1,4 +1,4 @@
-package com.example.vpassport.data.events
+package com.example.vpassport.util.events
 
 import com.example.vpassport.data.model.History
 
