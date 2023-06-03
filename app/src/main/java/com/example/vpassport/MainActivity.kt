@@ -16,11 +16,11 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.navigation.NavHostController
 import androidx.room.Room
-import com.example.vpassport.data.database.HistoryDatabase
-import com.example.vpassport.data.model.TempPass
-import com.example.vpassport.ui.screens.HomeScreen
-import com.example.vpassport.ui.theme.VPassportTheme
-import com.example.vpassport.ui.viewmodel.HistoryViewModel
+import com.example.vpassport.model.database.HistoryDatabase
+import com.example.vpassport.model.`1`.TempPass
+import com.example.vpassport.view.screens.HomeScreen
+import com.example.vpassport.view.theme.VPassportTheme
+import com.example.vpassport.viewmodel.HistoryViewModel
 
 class MainActivity : ComponentActivity() {
 
