@@ -54,7 +54,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.vpassport.R
-import com.example.vpassport.data.model.Passport
+import com.example.vpassport.data.model.TempPass
 import com.example.vpassport.data.model.ProfileEntry
 import com.example.vpassport.data.model.History
 import com.example.vpassport.util.events.HistoryEvent
@@ -68,7 +68,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    passport: Passport,
+    tempPass: TempPass,
     state: HistoryState,
     onEvent: (HistoryEvent) -> Unit
 ) {
@@ -86,7 +86,7 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .height(650.dp)
             ) {
-                UserProfile(passport = passport)
+                UserProfile(tempPass = tempPass)
             }
 
         },
@@ -145,7 +145,7 @@ fun HomeScreen(
             }
 
             Spacer(modifier = Modifier.size(MaterialTheme.spacing.medium))
-            UserCard(passport = passport, scaffoldState = bottomSheetScaffoldState, scope = scope)
+            UserCard(tempPass = tempPass, scaffoldState = bottomSheetScaffoldState, scope = scope)
             Spacer(modifier = Modifier.size(MaterialTheme.spacing.medium))
             Histories(state)
         }
@@ -181,62 +181,62 @@ fun UserEntry(profile: ProfileEntry) {
 }
 
 @Composable
-fun UserProfile(passport: Passport) {
+fun UserProfile(tempPass: TempPass) {
     val profileEntries = ArrayList<ProfileEntry>()
     profileEntries.add(
         ProfileEntry(
             title = R.string.user_docnum,
             id = R.drawable.numbers_fill1_wght400_grad0_opsz48,
-            data = passport.docNum,
+            data = tempPass.docNum,
         )
     )
     profileEntries.add(
         ProfileEntry(
             title = R.string.user_name,
             id = R.drawable.badge_fill1_wght400_grad0_opsz48,
-            data = passport.name,
+            data = tempPass.name,
         )
     )
     profileEntries.add(
         ProfileEntry(
             title = R.string.user_birthdate,
             id = R.drawable.cake_fill1_wght400_grad0_opsz48,
-            data = passport.birthDate,
+            data = tempPass.birthDate,
         )
     )
     profileEntries.add(
         ProfileEntry(
             title = R.string.user_gender,
             id = R.drawable.wc_fill1_wght400_grad0_opsz48,
-            data = passport.sex,
+            data = tempPass.sex,
         )
     )
     profileEntries.add(
         ProfileEntry(
             title = R.string.user_nationality,
             id = R.drawable.language_fill1_wght400_grad0_opsz48,
-            data = passport.nationality,
+            data = tempPass.nationality,
         )
     )
     profileEntries.add(
         ProfileEntry(
             title = R.string.user_issuing_authority,
             id = R.drawable.assured_workload_fill1_wght400_grad0_opsz48,
-            data = passport.issuer,
+            data = tempPass.issuer,
         )
     )
     profileEntries.add(
         ProfileEntry(
             title = R.string.user_issue_date,
             id = R.drawable.event_available_fill1_wght400_grad0_opsz48,
-            data = passport.issueDate,
+            data = tempPass.issueDate,
         )
     )
     profileEntries.add(
         ProfileEntry(
             title = R.string.user_expiry_date,
             id = R.drawable.event_busy_fill1_wght400_grad0_opsz48,
-            data = passport.expiryDate,
+            data = tempPass.expiryDate,
         )
     )
 
@@ -278,7 +278,7 @@ fun UserProfile(passport: Passport) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserCard(passport: Passport, scaffoldState: BottomSheetScaffoldState, scope: CoroutineScope) {
+fun UserCard(tempPass: TempPass, scaffoldState: BottomSheetScaffoldState, scope: CoroutineScope) {
     Surface(
         onClick = {
             scope.launch {
@@ -303,7 +303,7 @@ fun UserCard(passport: Passport, scaffoldState: BottomSheetScaffoldState, scope:
                 modifier = Modifier.fillMaxWidth(1f)
             ) {
                 Text(
-                    text = passport.docNum,
+                    text = tempPass.docNum,
                     style = MaterialTheme.typography.labelMedium
                     )
                 Text(
@@ -325,16 +325,16 @@ fun UserCard(passport: Passport, scaffoldState: BottomSheetScaffoldState, scope:
                 Spacer(modifier = Modifier.size(8.dp))
                 Column() {
                     Text(
-                        text = passport.name,
+                        text = tempPass.name,
                         style = MaterialTheme.typography.titleLarge
                     )
                     Column {
                         Text(
-                            text = passport.sex,
+                            text = tempPass.sex,
                             style = MaterialTheme.typography.labelLarge
                         )
                         Text(
-                            text = passport.birthDate,
+                            text = tempPass.birthDate,
                             style = MaterialTheme.typography.labelLarge
                         )
                     }
@@ -351,7 +351,7 @@ fun UserCard(passport: Passport, scaffoldState: BottomSheetScaffoldState, scope:
                         style = MaterialTheme.typography.labelSmall
                     )
                     Text(
-                        text = passport.issueDate,
+                        text = tempPass.issueDate,
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -361,7 +361,7 @@ fun UserCard(passport: Passport, scaffoldState: BottomSheetScaffoldState, scope:
                         style = MaterialTheme.typography.labelSmall
                     )
                     Text(
-                        text = passport.expiryDate,
+                        text = tempPass.expiryDate,
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -452,7 +452,7 @@ fun DefaultHistory() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DefaultCard() {
-    val defaultPass = Passport(
+    val defaultPass = TempPass(
         docType = "Passport",
         issuer = "ABC Country",
         name = "John Smith",
@@ -473,7 +473,7 @@ fun DefaultCard() {
 @Preview(showBackground = true)
 @Composable
 fun DefaultProfile() {
-    val defaultPass = Passport(
+    val defaultPass = TempPass(
         docType = "Passport",
         issuer = "ABC Country",
         name = "John Smith",

@@ -17,7 +17,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.navigation.NavHostController
 import androidx.room.Room
 import com.example.vpassport.data.database.HistoryDatabase
-import com.example.vpassport.data.model.Passport
+import com.example.vpassport.data.model.TempPass
 import com.example.vpassport.ui.screens.HomeScreen
 import com.example.vpassport.ui.theme.VPassportTheme
 import com.example.vpassport.ui.viewmodel.HistoryViewModel
@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             VPassportTheme {
                 val state by viewModel.state.collectAsState()
-                val defaultPass = Passport(
+                val defaultPass = TempPass(
                     docType = "Passport",
                     issuer = "ABC Country",
                     name = "John Smith",
@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity() {
                     issueDate = "2022-01-01",
                     expiryDate = "2025-01-01"
                 )
-                HomeScreen(passport = defaultPass, state = state, onEvent = viewModel::onEvent)
+                HomeScreen(tempPass = defaultPass, state = state, onEvent = viewModel::onEvent)
 //                val options = GmsBarcodeScannerOptions.Builder()
 //                    .setBarcodeFormats(
 //                        Barcode.FORMAT_QR_CODE)

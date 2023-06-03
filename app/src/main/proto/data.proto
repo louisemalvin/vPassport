@@ -13,3 +13,15 @@ message AppSettings {
         GERMAN = 1;
     }
 }
+
+message Passport {
+    string docNum = 1;
+    string docType = 2;
+    string issuer = 3;
+    string name = 4;
+    string nationality = 5;
+    string birthDate = 6;
+    string sex = 7;
+    string issueDate = 8;
+    string expiryDate = 9;
+}

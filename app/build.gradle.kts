@@ -88,6 +88,16 @@ dependencies {
     implementation("androidx.datastore:datastore-core:1.0.0")
     implementation("com.google.protobuf:protobuf-javalite:3.18.0")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    val lifecycle_version = "2.6.1"
+    val arch_version = "2.2.0"
+
+    // ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
+    // ViewModel utilities for Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
+    // LiveData
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")
 }
 
 protobuf {

@@ -1,5 +1,5 @@
 package com.example.vpassport.data.model
-data class Passport(
+data class TempPass(
     val docType: String,
     val issuer: String,
     val name: String,
