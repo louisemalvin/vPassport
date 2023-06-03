@@ -1,4 +1,4 @@
-package com.example.vpassport.data.model.history
+package com.example.vpassport.data.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

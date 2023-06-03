@@ -1,9 +1,10 @@
-package com.example.vpassport.data.model.history
+package com.example.vpassport.data.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
+import com.example.vpassport.data.model.History
 import kotlinx.coroutines.flow.Flow
 
 @Dao

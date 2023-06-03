@@ -1,8 +1,8 @@
 package com.example.vpassport.ui.screens
 
 import androidx.compose.runtime.Composable
-import com.example.vpassport.data.model.history.HistoryEvent
-import com.example.vpassport.data.model.history.HistoryState
+import com.example.vpassport.data.events.HistoryEvent
+import com.example.vpassport.data.states.HistoryState
 
 @Composable
 fun QrScreen(

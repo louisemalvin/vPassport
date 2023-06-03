@@ -56,9 +56,9 @@ import androidx.compose.ui.unit.sp
 import com.example.vpassport.R
 import com.example.vpassport.data.model.Passport
 import com.example.vpassport.data.model.ProfileEntry
-import com.example.vpassport.data.model.history.History
-import com.example.vpassport.data.model.history.HistoryEvent
-import com.example.vpassport.data.model.history.HistoryState
+import com.example.vpassport.data.model.History
+import com.example.vpassport.data.events.HistoryEvent
+import com.example.vpassport.data.states.HistoryState
 import com.example.vpassport.ui.screens.dialogs.ConfirmationDialog
 import com.example.vpassport.ui.theme.icon
 import com.example.vpassport.ui.theme.spacing
