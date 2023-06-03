@@ -1,6 +1,6 @@
 package com.example.vpassport.util.states
 
-import com.example.vpassport.model.`1`.History
+import com.example.vpassport.model.data.History
 
 data class HistoryState(
     val histories: List<History> = emptyList(),

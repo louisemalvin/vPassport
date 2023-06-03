@@ -1,4 +1,4 @@
-package com.example.vpassport.model.`1`
+package com.example.vpassport.model.data
 data class TempPass(
     val docType: String,
     val issuer: String,

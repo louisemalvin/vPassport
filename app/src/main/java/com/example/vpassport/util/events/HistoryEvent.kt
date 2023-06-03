@@ -1,6 +1,6 @@
 package com.example.vpassport.util.events
 
-import com.example.vpassport.model.`1`.History
+import com.example.vpassport.model.data.History
 
 sealed interface HistoryEvent {
     object AddHistory: HistoryEvent

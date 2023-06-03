@@ -54,9 +54,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.vpassport.R
-import com.example.vpassport.model.`1`.TempPass
+import com.example.vpassport.model.data.TempPass
 import com.example.vpassport.model.data.ProfileEntry
-import com.example.vpassport.model.`1`.History
+import com.example.vpassport.model.data.History
 import com.example.vpassport.util.events.HistoryEvent
 import com.example.vpassport.util.states.HistoryState
 import com.example.vpassport.view.dialogs.ConfirmationDialog
