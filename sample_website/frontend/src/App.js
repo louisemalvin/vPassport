@@ -2,24 +2,21 @@ import QRCode from 'qrcode'
 import {useState} from 'react'
 
 function App() {
+  var canvas = document.getElementById('canvas')
 
-  const [qr, setQr] = useState('')
-  const generateQR =  () => {
-    QRCode.toDataURL('https://www.google.com', (err, url) => {
-      if (err) return console.log("error occurred")
-      console.log(url)
-      setQr(url)
-    })  
-  }
+QRCode.toCanvas(canvas, 'sample text', function (error) {
+  if (error) console.error(error)
+  console.log('success!');
+})
+
   return (
     <div className="App">
       <h1>Welcome.</h1>
       <h2>Before you continue, please verify your age.</h2>
-      <div className="phone" onClick={generateQR()}>
+      <div className="phone">
         CONTINUE ON YOUR MOBILE DEVICE
       </div>
-      <button onClick={generateQR}>Generate QR</button>
-      <img src={qr} alt="qr" />
+      <canvas id="canvas"></canvas>
     </div>
   )
 }
