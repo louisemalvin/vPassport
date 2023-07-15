@@ -93,7 +93,7 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .height(650.dp)
             ) {
-                UserProfile(tempPass = tempPass)
+                UserProfile(passportViewModel)
             }
 
         },
@@ -190,7 +190,9 @@ fun UserEntry(profile: ProfileEntry) {
 }
 
 @Composable
-fun UserProfile(tempPass: TempPass) {
+fun UserProfile(passportViewModel: PassportViewModel) {
+    val passport by passportViewModel.passport.observeAsState(Passport.getDefaultInstance())
+    val tempPass: Passport = passport!!
     val profileEntries = ArrayList<ProfileEntry>()
     profileEntries.add(
         ProfileEntry(
@@ -454,67 +456,3 @@ fun Histories(historyViewModel: HistoryViewModel) {
     }
 
 }
-
-//@Composable
-//fun DefaultHistory() {
-//    val state = HistoryState()
-//    Histories(li)
-//}
-
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun DefaultCard() {
-//    val defaultPass = TempPass(
-//        docType = "Passport",
-//        issuer = "ABC Country",
-//        name = "John Smith",
-//        docNum = "A1234567",
-//        nationality = "Country A",
-//        birthDate = "1990-01-01",
-//        sex = "Male",
-//        issueDate = "2022-01-01",
-//        expiryDate = "2025-01-01"
-//    )
-//
-//    val defaultScope = rememberCoroutineScope()
-//    val defaultSheetState = rememberBottomSheetScaffoldState()
-//    UserCard(defaultPass, defaultSheetState, defaultScope)
-//}
-
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultProfile() {
-    val defaultPass = TempPass(
-        docType = "Passport",
-        issuer = "ABC Country",
-        name = "John Smith",
-        docNum = "A1234567",
-        nationality = "Country A",
-        birthDate = "1990-01-01",
-        sex = "Male",
-        issueDate = "2022-01-01",
-        expiryDate = "2025-01-01"
-    )
-
-    UserProfile(defaultPass)
-}
-
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Preview(showSystemUi = true)
-//@Composable
-//fun DefaultApp() {
-//    val defaultPass = Passport(
-//        docType = "Passport",
-//        issuer = "ABC Country",
-//        name = "John Smith",
-//        docNum = "A1234567",
-//        nationality = "Country A",
-//        birthDate = "1990-01-01",
-//        sex = "Male",
-//        issueDate = "2022-01-01",
-//        expiryDate = "2025-01-01"
-//    )
-//
-//    HomeScreen(passport = defaultPass, onEvent = )
-//}
