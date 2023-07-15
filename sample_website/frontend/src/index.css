@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:normal,bold');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Montserrat';
+}
+
+h1 {
+  font-size: 3rem;
+  font-weight: bolder;
+}
+h2 {
+  font-size: 1.2rem;
+  font-weight: lighter;
+  margin-bottom: 1rem;
+}
+
+body {
+  background-color: white;
+  text-align: center;
+  color: black;
+}
+
+.phone {
+  font-size: 10px;
+  font-weight: bold;
+  margin: auto;
+  width: fit-content;
+  border: 3px solid black;
+  padding: 10px 30px;
+}
+
+.App {
+  padding: 2rem; 
+}
