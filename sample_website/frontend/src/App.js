@@ -1,13 +1,22 @@
 import QRCode from 'qrcode'
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 
 function App() {
   var canvas = document.getElementById('canvas')
 
-QRCode.toCanvas(canvas, 'sample text', function (error) {
-  if (error) console.error(error)
-  console.log('success!');
-})
+  useEffect(() => {
+    fetch('http://127.0.0.1:8080/qr')
+    .then(response => response.text())
+    .then(data => {
+      QRCode.toCanvas(canvas, data, function (error) {
+        if (error) console.error(error)
+        console.log('success!');
+      })
+    })
+  }, [])
+
+
+
 
   return (
     <div className="App">
