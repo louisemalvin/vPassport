@@ -5,9 +5,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.dataStore
 import com.example.vpassport.AppSettings
 import com.example.vpassport.Passport
-import com.example.vpassport.model.repo.interfaces.AppSettingsRepository
 import com.example.vpassport.model.repo.DefaultAppSettingsRepository
 import com.example.vpassport.model.repo.DefaultPassportRepository
+import com.example.vpassport.model.repo.interfaces.AppSettingsRepository
 import com.example.vpassport.model.repo.interfaces.PassportRepository
 import com.example.vpassport.util.serializers.AppSettingsSerializer
 import com.example.vpassport.util.serializers.PassportSerializer
@@ -20,7 +20,7 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule {
+object DatastoreModule {
 
     private val Context.appSettingsDataStore: DataStore<AppSettings> by dataStore(
         fileName = "app_settings.pb",

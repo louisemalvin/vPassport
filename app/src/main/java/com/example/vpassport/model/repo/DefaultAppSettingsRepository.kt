@@ -2,10 +2,9 @@ package com.example.vpassport.model.repo
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
 import com.example.vpassport.AppSettings
 import com.example.vpassport.model.repo.interfaces.AppSettingsRepository
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class DefaultAppSettingsRepository @Inject constructor(
@@ -13,8 +12,8 @@ class DefaultAppSettingsRepository @Inject constructor(
     private val appSettingsDataStore: DataStore<AppSettings>
 ) : AppSettingsRepository {
 
-    override suspend fun getAppSettings(): LiveData<AppSettings> {
-        return appSettingsDataStore.data.asLiveData()
+    override suspend fun getAppSettings(): Flow<AppSettings> {
+        return appSettingsDataStore.data
     }
 //    override suspend fun getDarkMode(): LiveData<Boolean> {
 //        return appSettingsDataStore.data.map { currentSettings ->

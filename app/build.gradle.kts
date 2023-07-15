@@ -24,6 +24,11 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        kapt {
+            arguments {
+                arg("room.schemaLocation", "$projectDir/schemas")
+            }
+        }
     }
 
     buildTypes {
@@ -60,6 +65,12 @@ dependencies {
     implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
     implementation("androidx.activity:activity-compose:1.7.2")
+    implementation("androidx.compose.runtime:runtime-livedata:1.4.3")
+    androidTestImplementation("androidx.test:core:1.5.0")
+    // To use the JUnit Extension APIs
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    // Kotlin extensions for androidx.test.ext.junit
+    androidTestImplementation("androidx.test.ext:junit-ktx:1.1.5")
 
     // Jetpack Compose
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
@@ -68,27 +79,27 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3:1.1.0")
     implementation("androidx.compose.material3:material3-window-size-class:1.1.0")
+    androidTestImplementation("junit:junit:4.12")
+    implementation("androidx.compose.ui:ui-tooling-preview")
 
     // Lifecycle components
     val lifecycle_version = "2.6.1"
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version")
 
-    // Accompanist and ML Kit
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.2-alpha")
+    // ML Kit
     implementation("com.google.mlkit:barcode-scanning:17.1.0")
 
-    // Compose Destinations
-    implementation("androidx.navigation:navigation-compose:2.5.3")
-    implementation("io.github.raamcosta.compose-destinations:animations-core:1.8.42-beta")
+    // System UI Controller
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.2-alpha")
 
     // Room Database
     val room_version = "2.5.1"
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
-
 
     // Proto DataStore
     implementation("androidx.datastore:datastore-core:1.0.0")
@@ -103,6 +114,13 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.44")
     kapt("com.google.dagger:hilt-android-compiler:2.44")
 
+    // JMRTD
+    implementation("org.jmrtd:jmrtd:0.7.37")
+//    implementation("org.bouncycastle:bcpkix-jdk15on:1.65")
+
+    // Navigation
+    val nav_version = "2.6.0"
+    implementation("androidx.navigation:navigation-compose:$nav_version")
 }
 
 protobuf {

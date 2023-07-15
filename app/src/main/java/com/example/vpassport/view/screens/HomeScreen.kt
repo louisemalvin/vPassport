@@ -42,6 +42,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,24 +56,28 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.vpassport.Passport
 import com.example.vpassport.R
-import com.example.vpassport.model.data.TempPass
-import com.example.vpassport.model.data.ProfileEntry
 import com.example.vpassport.model.data.History
-import com.example.vpassport.util.events.HistoryEvent
-import com.example.vpassport.util.states.HistoryState
+import com.example.vpassport.model.data.ProfileEntry
+import com.example.vpassport.model.data.TempPass
 import com.example.vpassport.view.dialogs.ConfirmationDialog
 import com.example.vpassport.view.theme.icon
 import com.example.vpassport.view.theme.spacing
+import com.example.vpassport.viewmodel.HistoryViewModel
+import com.example.vpassport.viewmodel.PassportViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    navController: NavController,
     tempPass: TempPass,
-    state: HistoryState,
-    onEvent: (HistoryEvent) -> Unit
+    historyViewModel: HistoryViewModel,
+    passportViewModel: PassportViewModel
+
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberStandardBottomSheetState(initialValue = SheetValue.PartiallyExpanded)
@@ -92,9 +99,11 @@ fun HomeScreen(
         },
         sheetContainerColor = MaterialTheme.colorScheme.surface
     ) {
-        if(state.isAddingHistory) {
-            ConfirmationDialog(state = state, onEvent = onEvent)
+        val isAdding: Boolean by historyViewModel.isAdding.collectAsState()
+        if(isAdding) {
+            ConfirmationDialog(historyViewModel)
         }
+
         Column(
             modifier = Modifier
                 .safeDrawingPadding()
@@ -118,7 +127,7 @@ fun HomeScreen(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = { navController.navigate("settings") }) {
                         Icon(
                             imageVector = Icons.Filled.Settings,
                             contentDescription = "Settings",
@@ -128,7 +137,7 @@ fun HomeScreen(
                     Spacer(Modifier.size(MaterialTheme.spacing.small))
                     FloatingActionButton(
                         onClick = {
-                                  onEvent(HistoryEvent.ShowDialog)
+                            historyViewModel.setIsAdding(true)
                         },
                         modifier = Modifier
                             .size(MaterialTheme.icon.large)
@@ -145,9 +154,9 @@ fun HomeScreen(
             }
 
             Spacer(modifier = Modifier.size(MaterialTheme.spacing.medium))
-            UserCard(tempPass = tempPass, scaffoldState = bottomSheetScaffoldState, scope = scope)
+            UserCard(scaffoldState = bottomSheetScaffoldState, scope = scope, passportViewModel = passportViewModel)
             Spacer(modifier = Modifier.size(MaterialTheme.spacing.medium))
-            Histories(state)
+            Histories(historyViewModel)
         }
     }
 }
@@ -278,7 +287,9 @@ fun UserProfile(tempPass: TempPass) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserCard(tempPass: TempPass, scaffoldState: BottomSheetScaffoldState, scope: CoroutineScope) {
+fun UserCard(scaffoldState: BottomSheetScaffoldState, scope: CoroutineScope, passportViewModel: PassportViewModel) {
+    val tempPass by passportViewModel.passport.observeAsState(Passport.getDefaultInstance())
+    val passport: Passport = tempPass!!
     Surface(
         onClick = {
             scope.launch {
@@ -303,7 +314,7 @@ fun UserCard(tempPass: TempPass, scaffoldState: BottomSheetScaffoldState, scope:
                 modifier = Modifier.fillMaxWidth(1f)
             ) {
                 Text(
-                    text = tempPass.docNum,
+                    text = passport.docNum,
                     style = MaterialTheme.typography.labelMedium
                     )
                 Text(
@@ -325,16 +336,16 @@ fun UserCard(tempPass: TempPass, scaffoldState: BottomSheetScaffoldState, scope:
                 Spacer(modifier = Modifier.size(8.dp))
                 Column() {
                     Text(
-                        text = tempPass.name,
+                        text = passport.name,
                         style = MaterialTheme.typography.titleLarge
                     )
                     Column {
                         Text(
-                            text = tempPass.sex,
+                            text = passport.sex,
                             style = MaterialTheme.typography.labelLarge
                         )
                         Text(
-                            text = tempPass.birthDate,
+                            text = passport.birthDate,
                             style = MaterialTheme.typography.labelLarge
                         )
                     }
@@ -351,7 +362,7 @@ fun UserCard(tempPass: TempPass, scaffoldState: BottomSheetScaffoldState, scope:
                         style = MaterialTheme.typography.labelSmall
                     )
                     Text(
-                        text = tempPass.issueDate,
+                        text = passport.issueDate,
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -361,7 +372,7 @@ fun UserCard(tempPass: TempPass, scaffoldState: BottomSheetScaffoldState, scope:
                         style = MaterialTheme.typography.labelSmall
                     )
                     Text(
-                        text = tempPass.expiryDate,
+                        text = passport.expiryDate,
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -418,7 +429,8 @@ fun History(history: History) {
 }
 
 @Composable
-fun Histories(state: HistoryState) {
+fun Histories(historyViewModel: HistoryViewModel) {
+    val list by historyViewModel.histories.observeAsState(listOf())
     Box(
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -432,7 +444,7 @@ fun Histories(state: HistoryState) {
             LazyColumn(
                 modifier = Modifier.fillMaxHeight()
             ) {
-                items(state.histories) {
+                items(list) {
                     History(history = it)
                     Divider(thickness = Dp.Hairline)
                 }
@@ -443,31 +455,31 @@ fun Histories(state: HistoryState) {
 
 }
 
-@Composable
-fun DefaultHistory() {
-    val state = HistoryState()
-    Histories(state)
-}
+//@Composable
+//fun DefaultHistory() {
+//    val state = HistoryState()
+//    Histories(li)
+//}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DefaultCard() {
-    val defaultPass = TempPass(
-        docType = "Passport",
-        issuer = "ABC Country",
-        name = "John Smith",
-        docNum = "A1234567",
-        nationality = "Country A",
-        birthDate = "1990-01-01",
-        sex = "Male",
-        issueDate = "2022-01-01",
-        expiryDate = "2025-01-01"
-    )
-
-    val defaultScope = rememberCoroutineScope()
-    val defaultSheetState = rememberBottomSheetScaffoldState()
-    UserCard(defaultPass, defaultSheetState, defaultScope)
-}
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun DefaultCard() {
+//    val defaultPass = TempPass(
+//        docType = "Passport",
+//        issuer = "ABC Country",
+//        name = "John Smith",
+//        docNum = "A1234567",
+//        nationality = "Country A",
+//        birthDate = "1990-01-01",
+//        sex = "Male",
+//        issueDate = "2022-01-01",
+//        expiryDate = "2025-01-01"
+//    )
+//
+//    val defaultScope = rememberCoroutineScope()
+//    val defaultSheetState = rememberBottomSheetScaffoldState()
+//    UserCard(defaultPass, defaultSheetState, defaultScope)
+//}
 
 
 @Preview(showBackground = true)

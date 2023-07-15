@@ -7,56 +7,31 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.createSavedStateHandle
-import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.navigation.NavHostController
-import androidx.room.Room
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.compose.rememberNavController
 import com.example.vpassport.model.data.TempPass
-import com.example.vpassport.model.database.HistoryDatabase
 import com.example.vpassport.view.screens.HomeScreen
+import com.example.vpassport.view.screens.RegisterScreen
+import com.example.vpassport.view.screens.SettingsScreen
 import com.example.vpassport.view.theme.VPassportTheme
 import com.example.vpassport.viewmodel.HistoryViewModel
+import com.example.vpassport.viewmodel.PassportBuilderViewModel
+import com.example.vpassport.viewmodel.PassportViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    private val db by lazy {
-        Room.databaseBuilder(
-            applicationContext,
-            HistoryDatabase::class.java,
-            "history.db"
-        ).build()
-    }
-
-    private val viewModel by viewModels<HistoryViewModel>(
-        factoryProducer = {
-
-            object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(
-                modelClass: Class<T>,
-                extras: CreationExtras
-            ): T {
-                // Get the Application object from extras
-                val application = checkNotNull(extras[APPLICATION_KEY])
-                // Create a SavedStateHandle for this ViewModel from extras
-                val savedStateHandle = extras.createSavedStateHandle()
-
-                return HistoryViewModel(db.dao) as T
-            }
-        }}
-    )
-
-    lateinit var navController: NavHostController
+    private val historyViewModel: HistoryViewModel by viewModels()
+    private val passportViewModel: PassportViewModel by viewModels()
+    private val passportBuilderViewModel: PassportBuilderViewModel by viewModels()
+    private lateinit var navController: NavHostController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             VPassportTheme {
-                val state by viewModel.state.collectAsState()
                 val defaultPass = TempPass(
                     docType = "Passport",
                     issuer = "ABC Country",
@@ -68,7 +43,37 @@ class MainActivity : ComponentActivity() {
                     issueDate = "2022-01-01",
                     expiryDate = "2025-01-01"
                 )
-                HomeScreen(tempPass = defaultPass, state = state, onEvent = viewModel::onEvent)
+                navController = rememberNavController()
+                NavHost(navController = navController, startDestination = "auth") {
+                    navigation(
+                        startDestination = "register",
+                        route = "auth"
+                    ) {
+                        composable("register") {
+                            RegisterScreen(navController = navController, passportBuilderViewModel)
+                        }
+                    }
+                    navigation(
+                        startDestination = "home",
+                        route = "main"
+                    ) {
+                        composable("home") {
+                            HomeScreen(
+                                navController = navController,
+                                tempPass = defaultPass,
+                                historyViewModel = historyViewModel,
+                                passportViewModel = passportViewModel
+                            )
+                        }
+                        composable("settings") {
+                            SettingsScreen(navController = navController)
+                        }
+                    }
+
+                }
+//                DestinationsNavHost(navGraph = NavGraphs.root)
+                
+//                HomeScreen(tempPass = defaultPass, historyViewModel = historyViewModel, passportViewModel = passportViewModel)
 //                val options = GmsBarcodeScannerOptions.Builder()
 //                    .setBarcodeFormats(
 //                        Barcode.FORMAT_QR_CODE)

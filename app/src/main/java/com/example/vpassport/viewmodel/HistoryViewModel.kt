@@ -1,86 +1,50 @@
 package com.example.vpassport.viewmodel
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.vpassport.model.data.History
-import com.example.vpassport.model.database.dao.HistoryDao
-import com.example.vpassport.util.events.HistoryEvent
-import com.example.vpassport.util.states.HistoryState
+import com.example.vpassport.model.repo.interfaces.HistoryRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-
-class HistoryViewModel(
-    private val dao: HistoryDao
+import javax.inject.Inject
+@HiltViewModel
+class HistoryViewModel @Inject constructor(
+    private val historyRepository : HistoryRepository
 ): ViewModel() {
-    private val _histories = dao.getHistories()
-    private val _state = MutableStateFlow(HistoryState())
-    val state = combine(_state, _histories) {
-        state, histories ->
-        state.copy(
-            histories = histories
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HistoryState())
+    init {
+        getHistories()
+    }
 
-    fun onEvent(event: HistoryEvent) {
-        when (event) {
-            is HistoryEvent.DeleteHistory -> {
-                viewModelScope.launch {
-                    dao.deleteHistory(event.history)
-                }
-            }
-
-            is HistoryEvent.HideDialog -> {
-                _state.update {
-                    it.copy(
-                        isAddingHistory = false
-                    )
-                }
-            }
-
-            is HistoryEvent.ShowDialog -> {
-                _state.update {
-                    it.copy(
-                        isAddingHistory = true
-                    )
-                }
-            }
-
-            is HistoryEvent.SetIsAllowed -> {
-                _state.update {
-                    it.copy(
-                        isAllowed = event.isAllowed
-                    )
-                }
-            }
-
-            is HistoryEvent.SetSite -> {
-                _state.update {
-                    it.copy(
-                        site = event.site
-                    )
-                }
-            }
-
-            HistoryEvent.AddHistory -> {
-                val site = _state.value.site
-                val isAllowed = _state.value.isAllowed
-                if (site.isBlank()) {
-                    return
-                }
-                val history = History(
-                    site = site,
-                    isAllowed = isAllowed,
-                    date = LocalDateTime.now(),
-                )
-                viewModelScope.launch {
-                    dao.insertHistory(history)
-                }
-            }
+    private lateinit var _histories : LiveData<List<History>>
+    private lateinit var _isAdding : MutableStateFlow<Boolean>
+    val histories = _histories
+    val isAdding = _isAdding.asStateFlow()
+    private fun getHistories() {
+        viewModelScope.launch {
+            _histories = historyRepository.getHistories().asLiveData()
+            _isAdding = MutableStateFlow(false)
         }
+    }
+    fun addHistory(history: History) {
+        viewModelScope.launch {
+            historyRepository.addHistory(history)
+        }
+    }
+    fun deleteHistory(history: History) {
+        viewModelScope.launch {
+            historyRepository.removeHistory(history)
+        }
+    }
+    fun clearHistory() {
+        viewModelScope.launch {
+            historyRepository.removeAllHistories()
+        }
+    }
+    fun setIsAdding(boolean: Boolean) {
+        _isAdding.value = boolean
     }
 }

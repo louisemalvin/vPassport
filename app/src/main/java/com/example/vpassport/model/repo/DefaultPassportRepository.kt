@@ -2,17 +2,16 @@ package com.example.vpassport.model.repo
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
 import com.example.vpassport.Passport
 import com.example.vpassport.model.repo.interfaces.PassportRepository
+import kotlinx.coroutines.flow.Flow
 
 class DefaultPassportRepository(
     private val context: Context,
     private val passportDataStore: DataStore<Passport>
 ) : PassportRepository {
-    override suspend fun getPassport(): LiveData<Passport> {
-        return passportDataStore.data.asLiveData()
+    override suspend fun getPassport(): Flow<Passport> {
+        return passportDataStore.data
     }
 
     override suspend fun setPassport(passport: Passport) {
