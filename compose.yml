@@ -1,0 +1,24 @@
+services:
+  mediator:
+    build:
+      context: ./mediator
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./mediator:/app
+
+  site_backend:
+    build:
+      context: ./sample_website/backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./sample_website/backend:/app
+
+  site_frontend:
+    build:
+      context: ./sample_website/frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./sample_website/frontend:/app
