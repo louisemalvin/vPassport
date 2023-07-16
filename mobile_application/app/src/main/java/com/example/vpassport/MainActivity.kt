@@ -32,17 +32,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             VPassportTheme {
-                val defaultPass = TempPass(
-                    docType = "Passport",
-                    issuer = "ABC Country",
-                    name = "John Smith",
-                    docNum = "A1234567",
-                    nationality = "Country A",
-                    birthDate = "1990-01-01",
-                    sex = "Male",
-                    issueDate = "2022-01-01",
-                    expiryDate = "2025-01-01"
-                )
                 navController = rememberNavController()
                 NavHost(navController = navController, startDestination = "auth") {
                     navigation(
@@ -60,7 +49,6 @@ class MainActivity : ComponentActivity() {
                         composable("home") {
                             HomeScreen(
                                 navController = navController,
-                                tempPass = defaultPass,
                                 historyViewModel = historyViewModel,
                                 passportViewModel = passportViewModel
                             )
@@ -71,24 +59,6 @@ class MainActivity : ComponentActivity() {
                     }
 
                 }
-//                DestinationsNavHost(navGraph = NavGraphs.root)
-                
-//                HomeScreen(tempPass = defaultPass, historyViewModel = historyViewModel, passportViewModel = passportViewModel)
-//                val options = GmsBarcodeScannerOptions.Builder()
-//                    .setBarcodeFormats(
-//                        Barcode.FORMAT_QR_CODE)
-//                    .build()
-//                val scanner = GmsBarcodeScanning.getClient(this, options)
-//                scanner.startScan()
-//                    .addOnSuccessListener { barcode ->
-//                        // Task completed successfully
-//                    }
-//                    .addOnCanceledListener {
-//                        // Task canceled
-//                    }
-//                    .addOnFailureListener { e ->
-//                        // Task failed with an exception
-//                    }
             }
         }
     }

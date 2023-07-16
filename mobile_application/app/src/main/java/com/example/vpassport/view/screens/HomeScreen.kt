@@ -74,7 +74,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     navController: NavController,
-    tempPass: TempPass,
     historyViewModel: HistoryViewModel,
     passportViewModel: PassportViewModel
 
