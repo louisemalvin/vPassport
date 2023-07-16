@@ -1,22 +1,8 @@
 import QRCode from 'qrcode'
-import {useEffect, useState} from 'react'
+import { useEffect, useRef, useState } from 'react'
+import axios from 'axios'
 
 function App() {
-  var canvas = document.getElementById('canvas')
-
-  useEffect(() => {
-    fetch('http://127.0.0.1:8080/qr')
-    .then(response => response.text())
-    .then(data => {
-      QRCode.toCanvas(canvas, data, function (error) {
-        if (error) console.error(error)
-        console.log('success!');
-      })
-    })
-  }, [])
-
-
-
 
   return (
     <div className="App">
@@ -25,7 +11,7 @@ function App() {
       <div className="phone">
         CONTINUE ON YOUR MOBILE DEVICE
       </div>
-      <canvas id="canvas"></canvas>
+      <img className= "qr" src="http://127.0.0.1:8080/api/qr"></img>
     </div>
   )
 }

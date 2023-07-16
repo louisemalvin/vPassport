@@ -18,7 +18,7 @@ h2 {
 }
 
 body {
-  background-color: white;
+  background-color: black;
   text-align: center;
   color: black;
 }
@@ -33,5 +33,19 @@ body {
 }
 
 .App {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 20px;
+  width: fit-content;
   padding: 2rem; 
+  background-color: white;
+}
+
+.qr {
+  margin: 2rem;
+  width: 200px;
+  height: 200px;
 }
