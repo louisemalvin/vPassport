@@ -16,11 +16,9 @@ class CryptoManager {
         load(null)
     }
 
-    private val encryptCipher = Cipher.getInstance(TRANSFORMATION).apply {
-        init(Cipher.ENCRYPT_MODE, getKey())
-    }
+    private lateinit var encryptCipher : Cipher;
 
-    private fun getDecryptCipherFoIv(iv : ByteArray): Cipher {
+    private fun getDecryptCipherForIv(iv : ByteArray): Cipher {
         return Cipher.getInstance(TRANSFORMATION).apply {
             init(Cipher.DECRYPT_MODE, getKey(), IvParameterSpec(iv))
         }
@@ -47,6 +45,9 @@ class CryptoManager {
     }
 
     fun encrypt(bytes: ByteArray, outputStream: OutputStream): ByteArray {
+        encryptCipher = Cipher.getInstance(TRANSFORMATION).apply {
+            init(Cipher.ENCRYPT_MODE, getKey())
+        }
         val encryptedBytes = encryptCipher.doFinal(bytes)
         outputStream.use {
             it.write(encryptCipher.iv.size)
@@ -67,7 +68,7 @@ class CryptoManager {
             val encryptedBytes = ByteArray(encryptedBytesSize)
             it.read(encryptedBytes)
 
-            getDecryptCipherFoIv(iv).doFinal(encryptedBytes)
+            getDecryptCipherForIv(iv).doFinal(encryptedBytes)
         }
     }
     companion object {
