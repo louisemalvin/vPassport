@@ -52,7 +52,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,7 +60,6 @@ import com.example.vpassport.Passport
 import com.example.vpassport.R
 import com.example.vpassport.model.data.History
 import com.example.vpassport.model.data.ProfileEntry
-import com.example.vpassport.model.data.TempPass
 import com.example.vpassport.view.dialogs.ConfirmationDialog
 import com.example.vpassport.view.theme.icon
 import com.example.vpassport.view.theme.spacing
@@ -197,7 +195,7 @@ fun UserProfile(passportViewModel: PassportViewModel) {
         ProfileEntry(
             title = R.string.user_docnum,
             id = R.drawable.numbers_fill1_wght400_grad0_opsz48,
-            data = tempPass.docNum,
+            data = tempPass.documentNumber,
         )
     )
     profileEntries.add(
@@ -315,7 +313,7 @@ fun UserCard(scaffoldState: BottomSheetScaffoldState, scope: CoroutineScope, pas
                 modifier = Modifier.fillMaxWidth(1f)
             ) {
                 Text(
-                    text = passport.docNum,
+                    text = passport.documentNumber,
                     style = MaterialTheme.typography.labelMedium
                     )
                 Text(

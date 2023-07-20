@@ -18,7 +18,7 @@ class DefaultHistoryRepository @Inject constructor(
     }
 
     override suspend fun removeAllHistories() {
-        TODO("Not yet implemented")
+        historyDao.deleteAllHistories()
     }
 
     override suspend fun getHistories(): Flow<List<History>> {

@@ -19,25 +19,39 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarData
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.vpassport.view.theme.spacing
 import com.example.vpassport.viewmodel.PassportBuilderViewModel
+import kotlinx.coroutines.launch
+import org.bouncycastle.math.raw.Mod
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,54 +59,70 @@ fun RegisterScreen(
     navController: NavController,
     passportBuilderViewModel: PassportBuilderViewModel
 ) {
-    Column(
-        modifier = Modifier
-            .safeDrawingPadding()
-            .windowInsetsPadding(WindowInsets.statusBars)
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = MaterialTheme.spacing.medium)
-    ) {
-        Spacer(Modifier.size(MaterialTheme.spacing.medium))
-        Text(text = "Register", style = MaterialTheme.typography.displaySmall)
-        var name: String by remember { mutableStateOf("") }
-        var docNum: String by remember { mutableStateOf("") }
-        var date: MutableState<String> = remember { mutableStateOf("") }
-        Spacer(Modifier.size(MaterialTheme.spacing.medium))
-        TextField(
-            singleLine = true,
-            value = name,
-            onValueChange = {
-                name = it
-            },
-            modifier = Modifier.fillMaxWidth(),
-            label = {
-                Text("Full name")
-            })
-        TextField(
-            singleLine = true,
-            value = docNum,
-            onValueChange = {
-                docNum = it
-            },
-            modifier = Modifier.fillMaxWidth(),
-            label = {
-                Text("Document Number")
-            })
-        DatePickerField(label = "Birth Date", selectedDate = date)
-        Spacer(Modifier.size(MaterialTheme.spacing.medium))
-        FilledTonalButton(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                passportBuilderViewModel.defaultPassport(name, docNum, date.value)
-                navController.navigate("main") {
-                    popUpTo("auth") {
-                        inclusive = true
-                    }
-                }
-            }) {
-            Text("Use Default Instance")
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val errorState by passportBuilderViewModel.errorState.collectAsState()
+    val errorMessage by passportBuilderViewModel.errorMessage.collectAsState()
+
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) {
+        
+        if (errorState) {
+            LaunchedEffect(Unit) {
+                snackbarHostState.showSnackbar(
+                    message = errorMessage,
+                    duration = SnackbarDuration.Short
+                )
+                passportBuilderViewModel.resetErrorState()
+            }
         }
+
+        Column(
+            modifier = Modifier
+                .safeDrawingPadding()
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(it)
+                .padding(horizontal = MaterialTheme.spacing.medium)
+        ) {
+            Spacer(Modifier.size(MaterialTheme.spacing.medium))
+            Text(text = "Register", style = MaterialTheme.typography.displaySmall)
+            var name: String by remember { mutableStateOf("") }
+            var documentNumber: String by remember { mutableStateOf("") }
+            var date: MutableState<String> = remember { mutableStateOf("") }
+            Spacer(Modifier.size(MaterialTheme.spacing.medium))
+            TextField(
+                singleLine = true,
+                value = name,
+                onValueChange = {
+                    name = it
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = {
+                    Text("Full name")
+                })
+            TextField(
+                singleLine = true,
+                value = documentNumber,
+                onValueChange = {
+                    documentNumber = it
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = {
+                    Text("Document Number")
+                })
+            DatePickerField(label = "Birth Date", selectedDate = date)
+            Spacer(Modifier.size(MaterialTheme.spacing.medium))
+            FilledTonalButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    passportBuilderViewModel.defaultPassport(name, documentNumber, date.value)
+                }
+            ) {
+                Text("Use Default Instance")
+            }
+        }
+
     }
 
 }

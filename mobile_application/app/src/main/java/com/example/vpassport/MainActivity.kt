@@ -8,6 +8,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -18,7 +20,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.example.vpassport.model.data.TempPass
 import com.example.vpassport.view.screens.HomeScreen
 import com.example.vpassport.view.screens.RegisterScreen
 import com.example.vpassport.view.screens.SettingsScreen
@@ -27,6 +28,7 @@ import com.example.vpassport.viewmodel.HistoryViewModel
 import com.example.vpassport.viewmodel.PassportBuilderViewModel
 import com.example.vpassport.viewmodel.PassportViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -44,7 +46,23 @@ class MainActivity : ComponentActivity() {
                         startDestination = "register", route = "auth"
                     ) {
                         composable("register") {
-                            RegisterScreen(navController = navController, passportBuilderViewModel)
+                            val instanceCreated by passportBuilderViewModel.instanceCreated.collectAsState()
+                            if (instanceCreated) {
+                                passportBuilderViewModel.resetInstanceCreated()
+                                navController.navigate("main") {
+                                    popUpTo("auth") {
+                                        inclusive = true
+                                    }
+                                }
+
+                            } else {
+                                RegisterScreen(
+                                    navController = navController,
+                                    passportBuilderViewModel
+                                )
+                            }
+
+
                         }
                     }
                     navigation(
@@ -60,7 +78,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("settings") {
-                            SettingsScreen(navController = navController)
+                            SettingsScreen(
+                                navController = navController,
+                                passportViewModel = passportViewModel,
+                                historyViewModel = historyViewModel
+                            )
                         }
                     }
 

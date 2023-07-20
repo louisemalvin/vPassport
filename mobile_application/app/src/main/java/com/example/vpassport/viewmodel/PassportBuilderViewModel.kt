@@ -6,120 +6,118 @@ import androidx.lifecycle.viewModelScope
 import com.example.vpassport.Passport
 import com.example.vpassport.model.repo.interfaces.PassportRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
+import kotlin.jvm.Throws
 
 @HiltViewModel
 class PassportBuilderViewModel @Inject constructor(
     private val passportRepository: PassportRepository
-): ViewModel() {
+) : ViewModel() {
+
+    init {
+        setInit()
+    }
+
     private val passportBuilder: Passport.Builder = Passport.newBuilder()
+    private lateinit var _errorState : MutableStateFlow<Boolean>
+    private lateinit var _instanceCreated : MutableStateFlow<Boolean>
+    private lateinit var _errorMessage : MutableStateFlow<String>
+    val errorState = _errorState
+    val errorMessage = _errorMessage
+    val instanceCreated = _instanceCreated
 
-    fun setDocumentNumber(docNum: String) {
-        passportBuilder.setDocNum(docNum)
-    }
-
-    fun setDocumentType(docType: String) {
-        passportBuilder.setDocType(docType)
-    }
-
-    fun setIssuer(issuer: String) {
-        passportBuilder.setIssuer(issuer)
-    }
-
-    fun setName(name: String) {
-        passportBuilder.setName(name)
-    }
-
-    fun setNationality(nationality: String) {
-        passportBuilder.setNationality(nationality)
-    }
-
-    fun setBirthDate(birthDate: String) {
-        passportBuilder.setBirthDate(birthDate)
-    }
-
-    fun setSex(sex: String) {
-        passportBuilder.setSex(sex)
-    }
-
-    fun setIssueDate(issueDate: String) {
-        passportBuilder.setIssueDate(issueDate)
-    }
-
-    fun setExpiryDate(expiryDate: String) {
-        passportBuilder.setExpiryDate(expiryDate)
-    }
-
-    fun buildPassport(): Passport {
-        validatePassportData(passportBuilder)
-        return passportBuilder.build()
-    }
-
-    private fun validatePassportData(builder: Passport.Builder) {
-        // Perform validation logic here
-        if (builder.docNum.isEmpty()) {
-            throw IllegalStateException("DocNum cannot be empty")
+    private fun setInit() {
+        _errorState = MutableStateFlow(false)
+        _errorMessage = MutableStateFlow("")
+        runBlocking {
+            _instanceCreated = MutableStateFlow(!passportRepository.isEmpty())
         }
-        if (builder.docType.isEmpty()) {
-            throw IllegalStateException("DocType cannot be empty")
+    }
+
+    fun resetErrorState() {
+        _errorState.value = false
+    }
+
+    fun resetInstanceCreated() {
+        _instanceCreated.value = false
+    }
+
+    @Throws(IllegalArgumentException::class)
+    private fun validatePassportData(builder: Passport.Builder) {
+        if (builder.documentNumber.isEmpty()) {
+            throw IllegalArgumentException("Doument number cannot be empty")
+        }
+        if (builder.documentType.isEmpty()) {
+            throw IllegalArgumentException("Document type cannot be empty")
         }
         if (builder.issuer.isEmpty()) {
-            throw IllegalStateException("Issuer cannot be empty")
+            throw IllegalArgumentException("Issuer cannot be empty")
         }
         if (builder.name.isEmpty()) {
-            throw IllegalStateException("Name cannot be empty")
+            throw IllegalArgumentException("Name cannot be empty")
         }
         if (builder.nationality.isEmpty()) {
-            throw IllegalStateException("Nationality cannot be empty")
+            throw IllegalArgumentException("Nationality cannot be empty")
         }
         if (builder.birthDate.isEmpty()) {
-            throw IllegalStateException("BirthDate cannot be empty")
+            throw IllegalArgumentException("Birth date cannot be empty")
         }
         if (builder.sex.isEmpty()) {
-            throw IllegalStateException("Sex cannot be empty")
+            throw IllegalArgumentException("Sex cannot be empty")
         }
         if (builder.issueDate.isEmpty()) {
-            throw IllegalStateException("IssueDate cannot be empty")
+            throw IllegalArgumentException("Issue date cannot be empty")
         }
         if (builder.expiryDate.isEmpty()) {
-            throw IllegalStateException("ExpiryDate cannot be empty")
+            throw IllegalArgumentException("Expiry date cannot be empty")
         }
     }
 
-    fun defaultPassport(name: String, docNum: String, dateOfBirth: String) {
-        setName(name)
-        setDocumentNumber(docNum)
-        setDocumentType("Passport")
-        setIssuer("Government")
-        setNationality("Country")
-        setBirthDate(dateOfBirth)
-        setSex("Male")
-        setIssueDate("2023-01-01")
-        setExpiryDate("2028-12-31")
+
+    fun defaultPassport(name: String, documentNumber: String, dateOfBirth: String) {
+        passportBuilder.setName(name)
+        passportBuilder.setDocumentNumber(documentNumber)
+        passportBuilder.setDocumentType("Very Cool Passport")
+        passportBuilder.setIssuer("Republic of Earth")
+        passportBuilder.setNationality("Earthian")
+        passportBuilder.setBirthDate(dateOfBirth)
+        passportBuilder.setSex("Male")
+        passportBuilder.setExpiryDate("2028-12-31")
+        passportBuilder.setIssueDate("1998-03-22")
 
         viewModelScope.launch {
-            passportRepository.setPassport(buildPassport())
+            try {
+                validatePassportData(passportBuilder)
+            } catch (e: IllegalArgumentException) {
+                _errorMessage.value = e.message.toString()
+                _errorState.value = true
+                return@launch
+            }
+            passportRepository.setPassport(passportBuilder.build())
+            _instanceCreated.value = true
         }
     }
 
-    fun scanPassport(isoDep: IsoDep, docNum: String, dateOfBirth: String, dateOfExpiry: String) {
+    fun scanPassport(isoDep: IsoDep, documentNumber: String, dateOfBirth: String, dateOfExpiry: String) {
         val passportReader = PassportReader()
         viewModelScope.launch {
             try {
                 val dataGroup =
-                    passportReader.getDataGroup(isoDep, docNum, dateOfBirth, dateOfExpiry)
+                    passportReader.getDataGroup(isoDep, documentNumber, dateOfBirth, dateOfExpiry)
                 val mrzInfo = dataGroup.dG1File.mrzInfo
                 mrzInfo.documentCode
-                setDocumentNumber(mrzInfo.documentNumber)
-                setDocumentType(mrzInfo.documentCode)
-                setIssuer(mrzInfo.issuingState)
-                setName(mrzInfo.secondaryIdentifier + " " + mrzInfo.primaryIdentifier)
-                setNationality(mrzInfo.nationality)
-                setBirthDate(mrzInfo.dateOfBirth)
-                setSex(mrzInfo.gender.toString())
-                setIssueDate(mrzInfo.issuingState)
-                setExpiryDate(mrzInfo.dateOfExpiry)
+                passportBuilder.setDocumentNumber(mrzInfo.documentNumber)
+                passportBuilder.setDocumentType(mrzInfo.documentCode)
+                passportBuilder.setIssuer(mrzInfo.issuingState)
+                passportBuilder.setName(mrzInfo.secondaryIdentifier + " " + mrzInfo.primaryIdentifier)
+                passportBuilder.setNationality(mrzInfo.nationality)
+                passportBuilder.setBirthDate(mrzInfo.dateOfBirth)
+                passportBuilder.setSex(mrzInfo.gender.toString())
+                passportBuilder.setIssueDate(mrzInfo.issuingState)
+                passportBuilder.setExpiryDate(mrzInfo.dateOfExpiry)
 
             } catch (e: Exception) {
                 // handle exceptions

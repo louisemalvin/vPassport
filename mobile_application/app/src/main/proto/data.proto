@@ -15,8 +15,8 @@ message AppSettings {
 }
 
 message Passport {
-    string docNum = 1;
-    string docType = 2;
+    string documentNumber = 1;
+    string documentType = 2;
     string issuer = 3;
     string name = 4;
     string nationality = 5;

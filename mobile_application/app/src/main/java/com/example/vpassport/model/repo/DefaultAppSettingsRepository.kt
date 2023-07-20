@@ -15,17 +15,6 @@ class DefaultAppSettingsRepository @Inject constructor(
     override suspend fun getAppSettings(): Flow<AppSettings> {
         return appSettingsDataStore.data
     }
-//    override suspend fun getDarkMode(): LiveData<Boolean> {
-//        return appSettingsDataStore.data.map { currentSettings ->
-//            currentSettings.darkMode
-//        }.asLiveData()
-//    }
-//
-//    override suspend fun getLanguage(): LiveData<AppSettings.Language> {
-//        return appSettingsDataStore.data.map { currentSettings ->
-//            currentSettings.language
-//        }.asLiveData()
-//    }
 
     override suspend fun setDarkMode(boolean: Boolean) {
         appSettingsDataStore.updateData { currentSettings ->

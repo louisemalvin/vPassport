@@ -15,15 +15,20 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.vpassport.view.theme.spacing
+import com.example.vpassport.viewmodel.HistoryViewModel
+import com.example.vpassport.viewmodel.PassportViewModel
 
 @Composable
 fun SettingsScreen(
-    navController: NavController
+    navController: NavController,
+    passportViewModel: PassportViewModel,
+    historyViewModel: HistoryViewModel
 ) {
     Scaffold {
         LazyColumn(
@@ -44,7 +49,28 @@ fun SettingsScreen(
                     Text(
                         text = "Reset Histories"
                     )
-                    Button(onClick = { /*TODO*/ }) {
+                    TextButton(onClick = { historyViewModel.clearHistory() }) {
+                        Text(text = "Reset")
+                    }
+                }
+            }
+            item {
+                Row (
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Text(
+                        text = "Reset Passport"
+                    )
+                    TextButton(onClick = {
+                        passportViewModel.resetPassport()
+                        navController.navigate("auth") {
+                            popUpTo("main") {
+                                inclusive = true
+                            }
+                        }
+                    }) {
                         Text(text = "Reset")
                     }
                 }

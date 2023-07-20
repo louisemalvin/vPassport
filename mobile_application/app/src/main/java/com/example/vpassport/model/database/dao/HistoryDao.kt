@@ -18,4 +18,7 @@ interface HistoryDao {
     @Query("SELECT * FROM history ORDER BY timestamp DESC")
     fun getHistories(): Flow<List<History>>
 
+    @Query("DELETE FROM history")
+    suspend fun deleteAllHistories()
+
 }
