@@ -1,4 +1,4 @@
-package com.example.vpassport.util.serializers
+package com.example.vpassport.util.serializer
 
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer

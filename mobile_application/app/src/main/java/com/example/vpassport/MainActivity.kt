@@ -7,6 +7,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,29 +30,29 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val historyViewModel: HistoryViewModel by viewModels()
-    private val passportViewModel: PassportViewModel by viewModels()
-    private val passportBuilderViewModel: PassportBuilderViewModel by viewModels()
     private lateinit var navController: NavHostController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val passportBuilderViewModel by viewModels<PassportBuilderViewModel>()
+            val passportViewModel by viewModels<PassportViewModel>()
+            val historyViewModel by viewModels<HistoryViewModel>()
             VPassportTheme {
                 navController = rememberNavController()
                 NavHost(navController = navController, startDestination = "auth") {
                     navigation(
-                        startDestination = "register",
-                        route = "auth"
+                        startDestination = "register", route = "auth"
                     ) {
                         composable("register") {
                             RegisterScreen(navController = navController, passportBuilderViewModel)
                         }
                     }
                     navigation(
-                        startDestination = "home",
-                        route = "main"
+                        startDestination = "home", route = "main"
                     ) {
                         composable("home") {
+//                            val historyViewModel = it.sharedViewModel<HistoryViewModel>(navController = navController)
+//                            val passportViewModel = it.sharedViewModel<PassportViewModel>(navController = navController)
                             HomeScreen(
                                 navController = navController,
                                 historyViewModel = historyViewModel,
@@ -62,4 +68,13 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
+
+@Composable
+inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navController: NavController): T {
+    val navGraphRoute = destination.parent?.route ?: return viewModel()
+    val parentEntry = remember(this) {
+        navController.getBackStackEntry(navGraphRoute)
+    }
+    return viewModel(parentEntry)
 }

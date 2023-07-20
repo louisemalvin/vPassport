@@ -9,8 +9,8 @@ import com.example.vpassport.model.repo.DefaultAppSettingsRepository
 import com.example.vpassport.model.repo.DefaultPassportRepository
 import com.example.vpassport.model.repo.interfaces.AppSettingsRepository
 import com.example.vpassport.model.repo.interfaces.PassportRepository
-import com.example.vpassport.util.serializers.AppSettingsSerializer
-import com.example.vpassport.util.serializers.PassportSerializer
+import com.example.vpassport.util.serializer.AppSettingsSerializer
+import com.example.vpassport.util.serializer.PassportSerializer
 import dagger.Module
 import dagger.Provides
 import dagger.Reusable
