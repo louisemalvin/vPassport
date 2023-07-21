@@ -2,6 +2,8 @@
 
 package com.example.vpassport.view.screens
 
+import QRCodeScannerViewModel
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -73,8 +75,9 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     navController: NavController,
     historyViewModel: HistoryViewModel,
-    passportViewModel: PassportViewModel
-
+    passportViewModel: PassportViewModel,
+    qrCodeScannerViewModel: QRCodeScannerViewModel,
+    context: Context
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberStandardBottomSheetState(initialValue = SheetValue.PartiallyExpanded)
@@ -97,9 +100,19 @@ fun HomeScreen(
         sheetContainerColor = MaterialTheme.colorScheme.surface
     ) {
         val isAdding: Boolean by historyViewModel.isAdding.collectAsState()
-        if(isAdding) {
-            ConfirmationDialog(historyViewModel)
+        if (isAdding) {
+            qrCodeScannerViewModel.scanQRCode(context)
+            historyViewModel.setIsAdding(false)
         }
+        val scanDone by qrCodeScannerViewModel.isDone.collectAsState()
+        if (scanDone) {
+            ConfirmationDialog(
+                context = context,
+                historyViewModel = historyViewModel,
+                qrCodeScannerViewModel = qrCodeScannerViewModel
+            )
+        }
+
 
         Column(
             modifier = Modifier
@@ -151,7 +164,11 @@ fun HomeScreen(
             }
 
             Spacer(modifier = Modifier.size(MaterialTheme.spacing.medium))
-            UserCard(scaffoldState = bottomSheetScaffoldState, scope = scope, passportViewModel = passportViewModel)
+            UserCard(
+                scaffoldState = bottomSheetScaffoldState,
+                scope = scope,
+                passportViewModel = passportViewModel
+            )
             Spacer(modifier = Modifier.size(MaterialTheme.spacing.medium))
             Histories(historyViewModel)
         }
@@ -255,7 +272,7 @@ fun UserProfile(passportViewModel: PassportViewModel) {
             .fillMaxWidth()
     ) {
         Column() {
-            Box (
+            Box(
                 Modifier.align(Alignment.CenterHorizontally)
             ) {
                 Text(
@@ -265,10 +282,10 @@ fun UserProfile(passportViewModel: PassportViewModel) {
             }
             Spacer(modifier = Modifier.size(MaterialTheme.spacing.medium))
             Surface {
-                Column (
+                Column(
                     modifier = Modifier
                         .padding(horizontal = MaterialTheme.spacing.medium)
-                ){
+                ) {
                     profileEntries.forEach {
                         Spacer(modifier = Modifier.size(MaterialTheme.spacing.small))
                         UserEntry(profile = it)
@@ -286,7 +303,11 @@ fun UserProfile(passportViewModel: PassportViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserCard(scaffoldState: BottomSheetScaffoldState, scope: CoroutineScope, passportViewModel: PassportViewModel) {
+fun UserCard(
+    scaffoldState: BottomSheetScaffoldState,
+    scope: CoroutineScope,
+    passportViewModel: PassportViewModel
+) {
     val tempPass by passportViewModel.passport.observeAsState(Passport.getDefaultInstance())
     val passport: Passport = tempPass!!
     Surface(
@@ -315,7 +336,7 @@ fun UserCard(scaffoldState: BottomSheetScaffoldState, scope: CoroutineScope, pas
                 Text(
                     text = passport.documentNumber,
                     style = MaterialTheme.typography.labelMedium
-                    )
+                )
                 Text(
                     text = stringResource(R.string.card_pass),
                     style = MaterialTheme.typography.labelMedium

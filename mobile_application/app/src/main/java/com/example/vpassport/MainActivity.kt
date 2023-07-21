@@ -2,6 +2,7 @@
 
 package com.example.vpassport
 
+import QRCodeScannerViewModel
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -39,6 +40,7 @@ class MainActivity : ComponentActivity() {
             val passportBuilderViewModel by viewModels<PassportBuilderViewModel>()
             val passportViewModel by viewModels<PassportViewModel>()
             val historyViewModel by viewModels<HistoryViewModel>()
+            val qrCodeScannerViewModel by viewModels<QRCodeScannerViewModel>()
             VPassportTheme {
                 navController = rememberNavController()
                 NavHost(navController = navController, startDestination = "auth") {
@@ -72,9 +74,11 @@ class MainActivity : ComponentActivity() {
 //                            val historyViewModel = it.sharedViewModel<HistoryViewModel>(navController = navController)
 //                            val passportViewModel = it.sharedViewModel<PassportViewModel>(navController = navController)
                             HomeScreen(
+                                context = this@MainActivity,
                                 navController = navController,
                                 historyViewModel = historyViewModel,
-                                passportViewModel = passportViewModel
+                                passportViewModel = passportViewModel,
+                                qrCodeScannerViewModel = qrCodeScannerViewModel
                             )
                         }
                         composable("settings") {

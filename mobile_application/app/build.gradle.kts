@@ -66,6 +66,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
     implementation("androidx.activity:activity-compose:1.7.2")
     implementation("androidx.compose.runtime:runtime-livedata:1.4.3")
+    implementation("com.google.android.material:material:1.9.0")
     androidTestImplementation("androidx.test:core:1.5.0")
     // To use the JUnit Extension APIs
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -90,7 +91,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version")
 
     // ML Kit
-    implementation("com.google.mlkit:barcode-scanning:17.1.0")
+    implementation("com.google.android.gms:play-services-code-scanner:16.0.0")
 
     // System UI Controller
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.2-alpha")
@@ -121,6 +122,16 @@ dependencies {
     // Navigation
     val nav_version = "2.6.0"
     implementation("androidx.navigation:navigation-compose:$nav_version")
+
+    // Ktor
+    val ktor_version = "1.6.4"
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-client-websockets:$ktor_version")
+    implementation("io.ktor:ktor-client-logging:$ktor_version")
+
+    // Scarlet
+    implementation("com.tinder.scarlet:scarlet:0.1.12")
 }
 
 protobuf {
