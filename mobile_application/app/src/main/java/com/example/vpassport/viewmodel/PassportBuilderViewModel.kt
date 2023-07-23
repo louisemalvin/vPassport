@@ -1,23 +1,20 @@
 package com.example.vpassport.viewmodel
 
-import android.app.Activity
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.Intent.getIntent
 import android.nfc.NfcAdapter
-import android.nfc.NfcManager
 import android.nfc.Tag
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vpassport.Passport
 import com.example.vpassport.model.repo.interfaces.PassportRepository
+import com.google.protobuf.ByteString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.jmrtd.lds.iso19794.FaceImageInfo
+import java.io.DataInputStream
 import javax.inject.Inject
 
 
@@ -52,9 +49,9 @@ class PassportBuilderViewModel @Inject constructor(
         _tag = MutableStateFlow(null)
         _errorState = MutableStateFlow(false)
         _errorMessage = MutableStateFlow("")
-        _documentNumber = MutableStateFlow("")
-        _dateOfBirth = MutableStateFlow("")
-        _dateOfExpiry = MutableStateFlow("")
+        _documentNumber = MutableStateFlow("X609021")
+        _dateOfBirth = MutableStateFlow("001012")
+        _dateOfExpiry = MutableStateFlow("230713")
         _nfcStatus = MutableStateFlow("Passport not detected")
         runBlocking {
             _instanceCreated = MutableStateFlow(!passportRepository.isEmpty())
@@ -114,6 +111,9 @@ class PassportBuilderViewModel @Inject constructor(
         if (builder.expiryDate.isEmpty()) {
             throw IllegalArgumentException("Expiry date cannot be empty")
         }
+        if (builder.photo.isEmpty()) {
+            throw IllegalArgumentException("Expiry date cannot be empty")
+        }
     }
 
 
@@ -127,7 +127,7 @@ class PassportBuilderViewModel @Inject constructor(
         }
     }
 
-    fun createPassport() {
+    fun createPassport(context: Context) {
         val passportReader = PassportReader()
         viewModelScope.launch {
             try {
@@ -139,7 +139,19 @@ class PassportBuilderViewModel @Inject constructor(
                 val dataGroup =
                     passportReader.getDataGroup(_tag.value!!, documentNumber.value, dateOfBirth.value, dateOfExpiry.value)
                 val mrzInfo = dataGroup.dG1File.mrzInfo
-                mrzInfo.documentCode
+
+                val allFaceImageInfo: MutableList<FaceImageInfo> = ArrayList()
+                dataGroup.dG2File.faceInfos.forEach {
+                    allFaceImageInfo.addAll(it.faceImageInfos)
+                }
+                var buffer: ByteArray? = null
+                if (allFaceImageInfo.isNotEmpty()) {
+                    val faceImageInfo = allFaceImageInfo.first()
+                    val length = faceImageInfo.imageLength
+                    val inputStream = DataInputStream(faceImageInfo.imageInputStream)
+                    buffer = ByteArray(length)
+                    inputStream.readFully(buffer, 0, length)
+                }
                 passportBuilder.setDocumentNumber(mrzInfo.documentNumber)
                 passportBuilder.setDocumentType(mrzInfo.documentCode)
                 passportBuilder.setIssuer(mrzInfo.issuingState)
@@ -149,6 +161,7 @@ class PassportBuilderViewModel @Inject constructor(
                 passportBuilder.setSex(mrzInfo.gender.toString())
                 passportBuilder.setIssueDate(mrzInfo.issuingState)
                 passportBuilder.setExpiryDate(mrzInfo.dateOfExpiry)
+                passportBuilder.setPhoto(ByteString.copyFrom(buffer))
                 validatePassportData(passportBuilder)
 
             } catch (e: Exception) {

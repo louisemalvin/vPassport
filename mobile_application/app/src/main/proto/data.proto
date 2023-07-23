@@ -24,4 +24,5 @@ message Passport {
     string sex = 7;
     string issueDate = 8;
     string expiryDate = 9;
+    bytes photo = 10;
 }

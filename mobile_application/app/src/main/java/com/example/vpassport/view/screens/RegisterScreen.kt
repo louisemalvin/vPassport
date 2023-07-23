@@ -124,7 +124,7 @@ fun RegisterScreen(
             FilledTonalButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    passportBuilderViewModel.createPassport()
+                    passportBuilderViewModel.createPassport(context)
                 }
             ) {
                 Text("Start passport creation")

@@ -109,20 +109,5 @@ class MainActivity : ComponentActivity() {
             passportBuilderViewModel.scanPassport(intent)
         }
     }
-//
-//    override fun onResume() {
-//        super.onResume()
-//        if (::navController.isInitialized) {
-//            val adapter = NfcAdapter.getDefaultAdapter(this)
-//            val pendingIntent = PendingIntent.getActivity(this, 0, Intent(this, this.javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_MUTABLE)
-//            if (navController.currentDestination?.route == "auth/register") {
-//                adapter.enableForegroundDispatch(this, pendingIntent, null, null)
-//            } else {
-//                adapter.disableForegroundDispatch(this)
-//            }
-//        }
-//
-//    }
-
 
 }

@@ -4,6 +4,7 @@ package com.example.vpassport.view.screens
 
 import QRCodeScannerViewModel
 import android.content.Context
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -51,6 +52,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.ImageBitmapConfig
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -346,13 +351,21 @@ fun UserCard(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.person),
-                    contentDescription = "user image",
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(RoundedCornerShape(corner = CornerSize(8.dp)))
+                val bitmap = BitmapFactory.decodeByteArray(
+                    passport.photo.toByteArray(),
+                    0,
+                    passport.photo.toByteArray().size
                 )
+                if (bitmap != null) {
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "user image",
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(RoundedCornerShape(corner = CornerSize(8.dp)))
+                    )
+                }
+
                 Spacer(modifier = Modifier.size(8.dp))
                 Column() {
                     Text(

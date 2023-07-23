@@ -116,7 +116,12 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.44")
 
     // JMRTD
-    implementation("org.jmrtd:jmrtd:0.7.37")
+    implementation("org.jmrtd:jmrtd:0.7.35")
+    implementation("com.madgag.spongycastle:prov:1.58.0.0")
+    implementation("net.sf.scuba:scuba-sc-android:0.0.23")
+    implementation("org.ejbca.cvc:cert-cvc:1.4.13") {
+        exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
+    }
 
     // Navigation
     val nav_version = "2.6.0"

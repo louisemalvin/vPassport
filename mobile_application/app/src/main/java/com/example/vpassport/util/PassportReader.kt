@@ -34,9 +34,10 @@ class PassportReader() {
         return withContext(Dispatchers.IO) {
             try {
                 val isoDep = IsoDep.get(tag)
-                val bacKey = createBACKey(documentNumber, dateOfBirth, dateOfExpiry)
+                isoDep.timeout = 10000
                 val cardService = CardService.getInstance(isoDep)
                 cardService.open()
+                val bacKey = createBACKey(documentNumber, dateOfBirth, dateOfExpiry)
                 val passportService = PassportService(
                     cardService,
                     NORMAL_MAX_TRANCEIVE_LENGTH,
