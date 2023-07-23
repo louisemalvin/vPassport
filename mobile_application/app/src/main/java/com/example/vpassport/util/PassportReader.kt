@@ -4,6 +4,7 @@ import android.content.ContentValues.TAG
 import android.nfc.tech.IsoDep
 import android.util.Log
 import com.example.vpassport.model.data.DataGroup
+import com.google.android.gms.common.util.IOUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.sf.scuba.smartcards.CardService
@@ -13,13 +14,20 @@ import org.jmrtd.PassportService
 import org.jmrtd.PassportService.DEFAULT_MAX_BLOCKSIZE
 import org.jmrtd.PassportService.NORMAL_MAX_TRANCEIVE_LENGTH
 import org.jmrtd.lds.CardSecurityFile
+import org.jmrtd.lds.ChipAuthenticationPublicKeyInfo
 import org.jmrtd.lds.PACEInfo
+import org.jmrtd.lds.icao.DG14File
 import org.jmrtd.lds.icao.DG1File
 import org.jmrtd.lds.icao.DG2File
 
 class PassportReader() {
 
-    suspend fun getDataGroup(isoDep: IsoDep, documentNumber : String, dateOfBirth : String, dateOfExpiry : String) : DataGroup {
+    suspend fun getDataGroup(
+        isoDep: IsoDep,
+        documentNumber: String,
+        dateOfBirth: String,
+        dateOfExpiry: String
+    ): DataGroup {
         return withContext(Dispatchers.IO) {
             try {
                 val bacKey = createBACKey(documentNumber, dateOfBirth, dateOfExpiry)
@@ -36,7 +44,8 @@ class PassportReader() {
                 doPACEorBAC(passportService = passportService, bacKey)
                 val dG1File = readDG1File(passportService)
                 val dG2File = readDG2File(passportService)
-                DataGroup(dG1File, dG2File)
+                val dG14File = readDG14File(passportService)
+                DataGroup(dG1File, dG2File, dG14File)
             } catch (e: Exception) {
                 throw e
             }
@@ -44,18 +53,31 @@ class PassportReader() {
     }
 
 
-
-    private fun createBACKey(documentNumber : String, dateOfBirth : String, dateOfExpiry : String) : BACKey {
+    private fun createBACKey(
+        documentNumber: String,
+        dateOfBirth: String,
+        dateOfExpiry: String
+    ): BACKey {
         return BACKey(documentNumber, dateOfBirth, dateOfExpiry)
     }
 
     private suspend fun doPACEorBAC(passportService: PassportService, bacKey: BACKeySpec) {
         var doPACE = false
         try {
-            val cardSecurity = CardSecurityFile(passportService.getInputStream(PassportService.EF_CARD_SECURITY, DEFAULT_MAX_BLOCKSIZE))
+            val cardSecurity = CardSecurityFile(
+                passportService.getInputStream(
+                    PassportService.EF_CARD_SECURITY,
+                    DEFAULT_MAX_BLOCKSIZE
+                )
+            )
             for (info in cardSecurity.getSecurityInfos()) {
                 if (info is PACEInfo) {
-                    passportService.doPACE(bacKey, info.objectIdentifier, PACEInfo.toParameterSpec(info.parameterId), null)
+                    passportService.doPACE(
+                        bacKey,
+                        info.objectIdentifier,
+                        PACEInfo.toParameterSpec(info.parameterId),
+                        null
+                    )
                     doPACE = true
                 }
             }
@@ -74,12 +96,36 @@ class PassportReader() {
         }
     }
 
-    private suspend fun readDG1File(passportService: PassportService) : DG1File {
-        val dg1  = passportService.getInputStream(PassportService.EF_DG1, DEFAULT_MAX_BLOCKSIZE)
+    private suspend fun doCA(passportService: PassportService, dataGroup: DataGroup) {
+        try {
+            val dg14 = dataGroup.dG14File
+            for (securityInfo in dg14.securityInfos) {
+                if (securityInfo is ChipAuthenticationPublicKeyInfo) {
+                    passportService.doEACCA(
+                        securityInfo.keyId,
+                        ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_AES_CBC_CMAC_256,
+                        securityInfo.protocolOIDString,
+                        securityInfo.subjectPublicKey,
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, e)
+        }
+    }
+
+    private suspend fun readDG1File(passportService: PassportService): DG1File {
+        val dg1 = passportService.getInputStream(PassportService.EF_DG1, DEFAULT_MAX_BLOCKSIZE)
         return DG1File(dg1)
     }
-    private suspend fun readDG2File(passportService: PassportService) : DG2File {
-        val dg2  = passportService.getInputStream(PassportService.EF_DG2, DEFAULT_MAX_BLOCKSIZE)
+
+    private suspend fun readDG2File(passportService: PassportService): DG2File {
+        val dg2 = passportService.getInputStream(PassportService.EF_DG2, DEFAULT_MAX_BLOCKSIZE)
         return DG2File(dg2)
+    }
+
+    private suspend fun readDG14File(passportService: PassportService): DG14File {
+        val dg14 = passportService.getInputStream(PassportService.EF_DG14, DEFAULT_MAX_BLOCKSIZE)
+        return DG14File(dg14)
     }
 }

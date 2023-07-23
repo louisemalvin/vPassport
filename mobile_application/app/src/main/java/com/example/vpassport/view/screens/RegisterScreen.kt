@@ -116,10 +116,10 @@ fun RegisterScreen(
             FilledTonalButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    passportBuilderViewModel.defaultPassport(name, documentNumber, date.value)
+                    passportBuilderViewModel.scanPassport(documentNumber, date.value, name)
                 }
             ) {
-                Text("Use Default Instance")
+                Text("Start passport creation")
             }
         }
 

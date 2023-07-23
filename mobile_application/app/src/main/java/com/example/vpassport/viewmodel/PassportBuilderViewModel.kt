@@ -76,31 +76,6 @@ class PassportBuilderViewModel @Inject constructor(
         }
     }
 
-
-    fun defaultPassport(name: String, documentNumber: String, dateOfBirth: String) {
-        passportBuilder.setName(name)
-        passportBuilder.setDocumentNumber(documentNumber)
-        passportBuilder.setDocumentType("Very Cool Passport")
-        passportBuilder.setIssuer("Republic of Earth")
-        passportBuilder.setNationality("Earthian")
-        passportBuilder.setBirthDate(dateOfBirth)
-        passportBuilder.setSex("Male")
-        passportBuilder.setExpiryDate("2028-12-31")
-        passportBuilder.setIssueDate("1998-03-22")
-
-        viewModelScope.launch {
-            try {
-                validatePassportData(passportBuilder)
-            } catch (e: IllegalArgumentException) {
-                _errorMessage.value = e.message.toString()
-                _errorState.value = true
-                return@launch
-            }
-            passportRepository.setPassport(passportBuilder.build())
-            _instanceCreated.value = true
-        }
-    }
-
     fun scanPassport(isoDep: IsoDep, documentNumber: String, dateOfBirth: String, dateOfExpiry: String) {
         val passportReader = PassportReader()
         viewModelScope.launch {
@@ -125,4 +100,28 @@ class PassportBuilderViewModel @Inject constructor(
 
         }
     }
+
+//        fun defaultPassport(name: String, documentNumber: String, dateOfBirth: String) {
+//        passportBuilder.setName(name)
+//        passportBuilder.setDocumentNumber(documentNumber)
+//        passportBuilder.setDocumentType("Very Cool Passport")
+//        passportBuilder.setIssuer("Republic of Earth")
+//        passportBuilder.setNationality("Earthian")
+//        passportBuilder.setBirthDate(dateOfBirth)
+//        passportBuilder.setSex("Male")
+//        passportBuilder.setExpiryDate("2028-12-31")
+//        passportBuilder.setIssueDate("1998-03-22")
+//
+//        viewModelScope.launch {
+//            try {
+//                validatePassportData(passportBuilder)
+//            } catch (e: IllegalArgumentException) {
+//                _errorMessage.value = e.message.toString()
+//                _errorState.value = true
+//                return@launch
+//            }
+//            passportRepository.setPassport(passportBuilder.build())
+//            _instanceCreated.value = true
+//        }
+//    }
 }

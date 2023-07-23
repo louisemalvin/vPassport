@@ -117,7 +117,6 @@ dependencies {
 
     // JMRTD
     implementation("org.jmrtd:jmrtd:0.7.37")
-//    implementation("org.bouncycastle:bcpkix-jdk15on:1.65")
 
     // Navigation
     val nav_version = "2.6.0"
@@ -131,7 +130,12 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:$ktor_version")
 
     // Scarlet
-    implementation("com.tinder.scarlet:scarlet:0.1.12")
+    val scarlet_version = "0.1.12"
+    implementation("com.tinder.scarlet:scarlet:$scarlet_version")
+    implementation("com.tinder.scarlet:lifecycle-android:$scarlet_version")
+    implementation("com.tinder.scarlet:websocket-okhttp:$scarlet_version")
+    implementation("com.tinder.scarlet:message-adapter-moshi:$scarlet_version")
+    implementation("com.tinder.scarlet:stream-adapter-coroutines:$scarlet_version")
 }
 
 protobuf {
