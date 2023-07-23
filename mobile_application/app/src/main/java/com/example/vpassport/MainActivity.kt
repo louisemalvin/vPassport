@@ -3,6 +3,10 @@
 package com.example.vpassport
 
 import QRCodeScannerViewModel
+import android.app.PendingIntent
+import android.app.PendingIntent.FLAG_MUTABLE
+import android.content.Intent
+import android.nfc.NfcAdapter
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,11 +37,12 @@ import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     private lateinit var navController: NavHostController
+    val passportBuilderViewModel by viewModels<PassportBuilderViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val passportBuilderViewModel by viewModels<PassportBuilderViewModel>()
             val passportViewModel by viewModels<PassportViewModel>()
             val historyViewModel by viewModels<HistoryViewModel>()
             val qrCodeScannerViewModel by viewModels<QRCodeScannerViewModel>()
@@ -51,6 +56,8 @@ class MainActivity : ComponentActivity() {
                             val instanceCreated by passportBuilderViewModel.instanceCreated.collectAsState()
                             if (instanceCreated) {
                                 passportBuilderViewModel.resetInstanceCreated()
+                                NfcAdapter.getDefaultAdapter(this@MainActivity)
+                                    .disableForegroundDispatch(this@MainActivity)
                                 navController.navigate("main") {
                                     popUpTo("auth") {
                                         inclusive = true
@@ -60,7 +67,8 @@ class MainActivity : ComponentActivity() {
                             } else {
                                 RegisterScreen(
                                     navController = navController,
-                                    passportBuilderViewModel
+                                    passportBuilderViewModel = passportBuilderViewModel,
+                                    context = this@MainActivity
                                 )
                             }
 
@@ -94,13 +102,27 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
 
-@Composable
-inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navController: NavController): T {
-    val navGraphRoute = destination.parent?.route ?: return viewModel()
-    val parentEntry = remember(this) {
-        navController.getBackStackEntry(navGraphRoute)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (NfcAdapter.ACTION_TECH_DISCOVERED == intent.action) {
+            passportBuilderViewModel.scanPassport(intent)
+        }
     }
-    return viewModel(parentEntry)
+//
+//    override fun onResume() {
+//        super.onResume()
+//        if (::navController.isInitialized) {
+//            val adapter = NfcAdapter.getDefaultAdapter(this)
+//            val pendingIntent = PendingIntent.getActivity(this, 0, Intent(this, this.javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_MUTABLE)
+//            if (navController.currentDestination?.route == "auth/register") {
+//                adapter.enableForegroundDispatch(this, pendingIntent, null, null)
+//            } else {
+//                adapter.disableForegroundDispatch(this)
+//            }
+//        }
+//
+//    }
+
+
 }

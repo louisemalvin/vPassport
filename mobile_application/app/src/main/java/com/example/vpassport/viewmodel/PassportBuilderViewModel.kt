@@ -1,16 +1,25 @@
 package com.example.vpassport.viewmodel
 
-import android.nfc.tech.IsoDep
+import android.app.Activity
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.Intent.getIntent
+import android.nfc.NfcAdapter
+import android.nfc.NfcManager
+import android.nfc.Tag
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vpassport.Passport
 import com.example.vpassport.model.repo.interfaces.PassportRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
-import kotlin.jvm.Throws
+
 
 @HiltViewModel
 class PassportBuilderViewModel @Inject constructor(
@@ -22,19 +31,50 @@ class PassportBuilderViewModel @Inject constructor(
     }
 
     private val passportBuilder: Passport.Builder = Passport.newBuilder()
-    private lateinit var _errorState : MutableStateFlow<Boolean>
-    private lateinit var _instanceCreated : MutableStateFlow<Boolean>
-    private lateinit var _errorMessage : MutableStateFlow<String>
+    private lateinit var _errorState: MutableStateFlow<Boolean>
+    private lateinit var _instanceCreated: MutableStateFlow<Boolean>
+    private lateinit var _errorMessage: MutableStateFlow<String>
+    private lateinit var _documentNumber: MutableStateFlow<String>
+    private lateinit var _dateOfBirth: MutableStateFlow<String>
+    private lateinit var _dateOfExpiry: MutableStateFlow<String>
+    private lateinit var _nfcStatus: MutableStateFlow<String>
+    private lateinit var _tag: MutableStateFlow<Tag?>
+
     val errorState = _errorState
     val errorMessage = _errorMessage
     val instanceCreated = _instanceCreated
+    val documentNumber = _documentNumber
+    val dateOfBirth = _dateOfBirth
+    val dateOfExpiry = _dateOfExpiry
+    val nfcStatus = _nfcStatus
 
     private fun setInit() {
+        _tag = MutableStateFlow(null)
         _errorState = MutableStateFlow(false)
         _errorMessage = MutableStateFlow("")
+        _documentNumber = MutableStateFlow("")
+        _dateOfBirth = MutableStateFlow("")
+        _dateOfExpiry = MutableStateFlow("")
+        _nfcStatus = MutableStateFlow("Passport not detected")
         runBlocking {
             _instanceCreated = MutableStateFlow(!passportRepository.isEmpty())
         }
+    }
+
+    fun setNfcStatus(status: String) {
+        _nfcStatus.value = status
+    }
+
+    fun setDocumentNumber(documentNumber: String) {
+        _documentNumber.value = documentNumber
+    }
+
+    fun setDateOfBirth(name: String) {
+        _dateOfBirth.value = name
+    }
+
+    fun setDateOfExpiry(date: String) {
+        _dateOfExpiry.value = date
     }
 
     fun resetErrorState() {
@@ -76,12 +116,28 @@ class PassportBuilderViewModel @Inject constructor(
         }
     }
 
-    fun scanPassport(isoDep: IsoDep, documentNumber: String, dateOfBirth: String, dateOfExpiry: String) {
+
+    fun scanPassport(intent: Intent) {
+        val tag: Tag? = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+        if (tag != null) {
+            _nfcStatus.value = "Passport ready for reading"
+            _tag.value = tag
+        } else {
+            _nfcStatus.value = "Please place your passport on the back of your phone"
+        }
+    }
+
+    fun createPassport() {
         val passportReader = PassportReader()
         viewModelScope.launch {
             try {
+                if (_tag.value == null) {
+                    _errorMessage.value = "Passport not ready. Please try again."
+                    _errorState.value = true
+                    return@launch
+                }
                 val dataGroup =
-                    passportReader.getDataGroup(isoDep, documentNumber, dateOfBirth, dateOfExpiry)
+                    passportReader.getDataGroup(_tag.value!!, documentNumber.value, dateOfBirth.value, dateOfExpiry.value)
                 val mrzInfo = dataGroup.dG1File.mrzInfo
                 mrzInfo.documentCode
                 passportBuilder.setDocumentNumber(mrzInfo.documentNumber)
@@ -93,12 +149,18 @@ class PassportBuilderViewModel @Inject constructor(
                 passportBuilder.setSex(mrzInfo.gender.toString())
                 passportBuilder.setIssueDate(mrzInfo.issuingState)
                 passportBuilder.setExpiryDate(mrzInfo.dateOfExpiry)
+                validatePassportData(passportBuilder)
 
             } catch (e: Exception) {
-                // handle exceptions
+                _errorMessage.value = "Failed in: " + e.message.toString()
+                _errorState.value = true
+                return@launch
             }
+            passportRepository.setPassport(passportBuilder.build())
+            _instanceCreated.value = true
 
         }
+
     }
 
 //        fun defaultPassport(name: String, documentNumber: String, dateOfBirth: String) {
