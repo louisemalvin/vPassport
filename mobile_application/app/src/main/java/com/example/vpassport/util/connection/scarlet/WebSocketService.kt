@@ -1,4 +1,4 @@
-package com.example.vpassport.util.connection
+package com.example.vpassport.util.connection.scarlet
 
 import com.example.vpassport.Passport
 import com.example.vpassport.model.data.PassportAssertion

@@ -28,6 +28,6 @@ dependencies {
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     implementation("io.ktor:ktor-server-websockets:$ktor_version")
-
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation("io.github.g0dkar:qrcode-kotlin-jvm:3.3.0")
 }

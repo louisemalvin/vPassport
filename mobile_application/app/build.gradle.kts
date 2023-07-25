@@ -123,6 +123,10 @@ dependencies {
         exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
     }
 
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
     // Navigation
     val nav_version = "2.6.0"
     implementation("androidx.navigation:navigation-compose:$nav_version")
@@ -141,6 +145,9 @@ dependencies {
     implementation("com.tinder.scarlet:websocket-okhttp:$scarlet_version")
     implementation("com.tinder.scarlet:message-adapter-moshi:$scarlet_version")
     implementation("com.tinder.scarlet:stream-adapter-coroutines:$scarlet_version")
+
+    // Gson
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 protobuf {

@@ -15,7 +15,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
@@ -47,15 +46,10 @@ fun ConfirmationDialog(
 
         ) {
 
-            val text by qrCodeScannerViewModel.scannedQRCodeData.observeAsState(initial = "")
-            Text(text = "Confirm to share data with $text?")
+            val text by qrCodeScannerViewModel.qrData.observeAsState()
+            Text(text = "Confirm to share data with ${qrCodeScannerViewModel.getBaseUrl(text?.apiUrl!!)}?")
             Button(onClick = {
-                val history = History(
-                    site = text,
-                    isAllowed = true,
-                    date = LocalDateTime.now()
-                )
-                historyViewModel.addHistory(history)
+                qrCodeScannerViewModel.processQRCode(historyViewModel)
                 qrCodeScannerViewModel.resetIsDone()
             }) {
                 Text(text = "Yes.")

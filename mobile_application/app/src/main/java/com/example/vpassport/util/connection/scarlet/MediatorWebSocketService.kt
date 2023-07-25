@@ -1,17 +1,11 @@
-package com.example.vpassport.util.connection
+package com.example.vpassport.util.connection.scarlet
 
 import com.example.vpassport.Passport
 import com.tinder.scarlet.Scarlet
-import com.tinder.scarlet.WebSocket
-import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.tinder.streamadapter.coroutines.CoroutinesStreamAdapterFactory
-import kotlinx.coroutines.flow.observeOn
 import okhttp3.OkHttpClient
-import java.util.concurrent.Flow
-
-
 
 
 class   MediatorWebSocketService {
