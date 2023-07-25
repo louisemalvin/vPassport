@@ -56,8 +56,6 @@ class MainActivity : ComponentActivity() {
                             val instanceCreated by passportBuilderViewModel.instanceCreated.collectAsState()
                             if (instanceCreated) {
                                 passportBuilderViewModel.resetInstanceCreated()
-                                NfcAdapter.getDefaultAdapter(this@MainActivity)
-                                    .disableForegroundDispatch(this@MainActivity)
                                 navController.navigate("main") {
                                     popUpTo("auth") {
                                         inclusive = true

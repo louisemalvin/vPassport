@@ -2,6 +2,7 @@ package com.example.vpassport.viewmodel
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import androidx.lifecycle.ViewModel
@@ -13,8 +14,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.jmrtd.lds.icao.DG2File
 import org.jmrtd.lds.iso19794.FaceImageInfo
+import java.io.ByteArrayInputStream
 import java.io.DataInputStream
+import java.io.IOException
+import java.io.InputStream
+import java.util.Base64
 import javax.inject.Inject
 
 
@@ -148,9 +154,9 @@ class PassportBuilderViewModel @Inject constructor(
                 if (allFaceImageInfo.isNotEmpty()) {
                     val faceImageInfo = allFaceImageInfo.first()
                     val length = faceImageInfo.imageLength
-                    val inputStream = DataInputStream(faceImageInfo.imageInputStream)
+                    val dataInputStream = DataInputStream(faceImageInfo.imageInputStream)
                     buffer = ByteArray(length)
-                    inputStream.readFully(buffer, 0, length)
+                    dataInputStream.readFully(buffer, 0, length)
                 }
                 passportBuilder.setDocumentNumber(mrzInfo.documentNumber)
                 passportBuilder.setDocumentType(mrzInfo.documentCode)

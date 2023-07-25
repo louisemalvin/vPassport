@@ -18,7 +18,7 @@ class   MediatorWebSocketService {
 
     private val okHttpClient = OkHttpClient.Builder().build()
     private val scarletInstance = Scarlet.Builder()
-        .webSocketFactory(okHttpClient.newWebSocketFactory("wss://192.168.1.127"))
+        .webSocketFactory(okHttpClient.newWebSocketFactory("wss://192.168.1.127:8"))
         .addMessageAdapterFactory(MoshiMessageAdapter.Factory())
         .addStreamAdapterFactory(CoroutinesStreamAdapterFactory())
         .build()
