@@ -24,5 +24,14 @@ message Passport {
     string sex = 7;
     string issueDate = 8;
     string expiryDate = 9;
-    bytes photo = 10;
+    string documentNumberSignature = 10;
+    string documentTypeSignature = 11;
+    string issuerSignature = 12;
+    string nameSignature = 13;
+    string nationalitySignature = 14;
+    string birthDateSignature = 15;
+    string sexSignature = 16;
+    string issueDateSignature = 17;
+    string expiryDateSignature = 18;
+    bytes photo = 19;
 }

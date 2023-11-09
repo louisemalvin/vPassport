@@ -5,10 +5,7 @@ import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
-import android.nfc.Tag
-import android.os.Parcelable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -45,7 +42,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.vpassport.view.theme.spacing
 import com.example.vpassport.viewmodel.PassportBuilderViewModel
@@ -63,8 +59,9 @@ fun RegisterScreen(
 ) {
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val errorState by passportBuilderViewModel.errorState.collectAsState()
-    val errorMessage by passportBuilderViewModel.errorMessage.collectAsState()
+    val errorState by passportBuilderViewModel.statusState.collectAsState()
+    val isConnecting by passportBuilderViewModel.isConnecting.collectAsState()
+    val errorMessage by passportBuilderViewModel.statusMessage.collectAsState()
     val documentNumber: String by passportBuilderViewModel.documentNumber.collectAsState()
     val dateOfExpiry: String by passportBuilderViewModel.dateOfExpiry.collectAsState()
     val dateOfBirth: String by passportBuilderViewModel.dateOfBirth.collectAsState()
@@ -87,6 +84,14 @@ fun RegisterScreen(
                     duration = SnackbarDuration.Short
                 )
                 passportBuilderViewModel.resetErrorState()
+            }
+        }
+        if (isConnecting) {
+            LaunchedEffect(Unit) {
+                snackbarHostState.showSnackbar(
+                    message = "Connecting to mediator",
+                    duration = SnackbarDuration.Short
+                )
             }
         }
 
@@ -124,7 +129,8 @@ fun RegisterScreen(
             FilledTonalButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    passportBuilderViewModel.createPassport(context)
+                   passportBuilderViewModel.createPassport(context)
+//                    passportBuilderViewModel.getMediatorAssertion()
                 }
             ) {
                 Text("Start passport creation")
@@ -175,11 +181,11 @@ fun DatePickerField(
                         val selectedMillis = datePickerState.selectedDateMillis
                         if (label.equals("Birth Date")) {
                             passportBuilderViewModel.setDateOfBirth(selectedMillis?.let {
-                                SimpleDateFormat("ddmmyy", Locale.getDefault()).format(Date(it))
+                                SimpleDateFormat("yyMMdd", Locale.getDefault()).format(Date(it))
                             } ?: "")
                         } else {
                             passportBuilderViewModel.setDateOfExpiry(selectedMillis?.let {
-                                SimpleDateFormat("ddmmyy", Locale.getDefault()).format(Date(it))
+                                SimpleDateFormat("yyMMdd", Locale.getDefault()).format(Date(it))
                             } ?: "")
                         }
                     },

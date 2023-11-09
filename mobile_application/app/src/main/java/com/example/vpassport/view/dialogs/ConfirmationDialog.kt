@@ -1,6 +1,6 @@
 package com.example.vpassport.view.dialogs
 
-import QRCodeScannerViewModel
+import com.example.vpassport.viewmodel.QRCodeScannerViewModel
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,9 +20,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.example.vpassport.model.data.History
 import com.example.vpassport.viewmodel.HistoryViewModel
-import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,7 +48,6 @@ fun ConfirmationDialog(
             Text(text = "Confirm to share data with ${qrCodeScannerViewModel.getBaseUrl(text?.apiUrl!!)}?")
             Button(onClick = {
                 qrCodeScannerViewModel.processQRCode(historyViewModel)
-                qrCodeScannerViewModel.resetIsDone()
             }) {
                 Text(text = "Yes.")
             }

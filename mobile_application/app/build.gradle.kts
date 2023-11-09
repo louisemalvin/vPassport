@@ -138,14 +138,6 @@ dependencies {
     implementation("io.ktor:ktor-client-websockets:$ktor_version")
     implementation("io.ktor:ktor-client-logging:$ktor_version")
 
-    // Scarlet
-    val scarlet_version = "0.1.12"
-    implementation("com.tinder.scarlet:scarlet:$scarlet_version")
-    implementation("com.tinder.scarlet:lifecycle-android:$scarlet_version")
-    implementation("com.tinder.scarlet:websocket-okhttp:$scarlet_version")
-    implementation("com.tinder.scarlet:message-adapter-moshi:$scarlet_version")
-    implementation("com.tinder.scarlet:stream-adapter-coroutines:$scarlet_version")
-
     // Gson
     implementation("com.google.code.gson:gson:2.10.1")
 }

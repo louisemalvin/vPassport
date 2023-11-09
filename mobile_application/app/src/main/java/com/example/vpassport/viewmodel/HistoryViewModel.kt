@@ -29,7 +29,7 @@ class HistoryViewModel @Inject constructor(
             _isAdding = MutableStateFlow(false)
         }
     }
-    fun addHistory(history: History) {
+    fun addHistory(history: History) { 
         viewModelScope.launch {
             historyRepository.addHistory(history)
         }

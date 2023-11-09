@@ -2,9 +2,7 @@
 
 package com.example.vpassport
 
-import QRCodeScannerViewModel
-import android.app.PendingIntent
-import android.app.PendingIntent.FLAG_MUTABLE
+import com.example.vpassport.viewmodel.QRCodeScannerViewModel
 import android.content.Intent
 import android.nfc.NfcAdapter
 import android.os.Bundle
@@ -12,14 +10,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -33,19 +25,18 @@ import com.example.vpassport.viewmodel.HistoryViewModel
 import com.example.vpassport.viewmodel.PassportBuilderViewModel
 import com.example.vpassport.viewmodel.PassportViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private lateinit var navController: NavHostController
-    val passportBuilderViewModel by viewModels<PassportBuilderViewModel>()
+    val passportBuilderViewModel: PassportBuilderViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val passportViewModel by viewModels<PassportViewModel>()
-            val historyViewModel by viewModels<HistoryViewModel>()
-            val qrCodeScannerViewModel by viewModels<QRCodeScannerViewModel>()
+            val passportViewModel : PassportViewModel by viewModels()
+            val historyViewModel: HistoryViewModel by viewModels()
+            val qrCodeScannerViewModel: QRCodeScannerViewModel by viewModels()
             VPassportTheme {
                 navController = rememberNavController()
                 NavHost(navController = navController, startDestination = "auth") {

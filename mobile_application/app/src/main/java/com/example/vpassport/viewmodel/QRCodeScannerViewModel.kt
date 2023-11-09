@@ -1,27 +1,45 @@
+package com.example.vpassport.viewmodel
+
 import android.content.Context
 import android.util.Log
+
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vpassport.model.data.History
-import com.example.vpassport.model.data.QRData
-import com.example.vpassport.model.data.UserData
-import com.example.vpassport.viewmodel.HistoryViewModel
+import com.example.vpassport.model.data.websocket.QRData
+import com.example.vpassport.model.data.websocket.AuthData
+import com.example.vpassport.model.data.websocket.WebSocketMessage
+import com.example.vpassport.model.repo.interfaces.HistoryRepository
+import com.example.vpassport.model.repo.interfaces.PassportRepository
+import com.example.vpassport.util.CryptoManager
+import com.example.vpassport.util.Resource
+import com.example.vpassport.util.connection.ktor.AuthenticationService
 import com.google.gson.Gson
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
-import kotlinx.coroutines.Dispatchers
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import java.net.URL
+import java.net.URI
 import java.time.LocalDateTime
+import javax.inject.Inject
 
-class QRCodeScannerViewModel : ViewModel() {
+@HiltViewModel
+class QRCodeScannerViewModel @Inject constructor(
+    private val historyRepository: HistoryRepository,
+    private val passportRepository: PassportRepository,
+    private val webSocket: AuthenticationService
+) : ViewModel() {
+
+    companion object {
+        private const val TAG = "QRCodeScannerViewModel"
+    }
+
     init {
         setInit()
     }
@@ -55,64 +73,122 @@ class QRCodeScannerViewModel : ViewModel() {
     }
 
     fun processQRCode(historyViewModel: HistoryViewModel) {
+        Log.i(TAG, "Verifying process started")
         viewModelScope.launch {
-            try {
-                val qr = _qrData.value!!
-                val retrofit = Retrofit.Builder()
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .baseUrl(getBaseUrl(qr.apiUrl))
-                    .build()
-
-                val apiService = retrofit.create(ApiService::class.java)
-                val response = withContext(Dispatchers.IO) {
-                    apiService.postUserAttributes(qr.apiUrl, UserData(qr.wsId, "123456"))
-                }
-
-                if (response.isSuccessful) {
-                    // Handle successful response (200 OK)
+            val qr = _qrData.value!!
+            val authData = AuthData(qr.wsId)
+            Log.i(TAG, "Connecting to ${qr.apiUrl}")
+            when (val result = webSocket.connect(authData, qr.apiUrl)) {
+                is Resource.Success -> {
                     val history = History(
                         site = getBaseUrl(qr.apiUrl),
                         isAllowed = true,
                         date = LocalDateTime.now()
                     )
                     historyViewModel.addHistory(history)
+                    Log.i(TAG, "Websocket connected.")
+                    webSocket.getMessage()
+                        .onEach { message ->
+                            when (message.event) {
+                                WebSocketMessage.EVENT_SIGNATURE_CHALLENGE -> {
+                                    val signature = CryptoManager().signMessage(message.data)
+                                    webSocket.sendMessage(
+                                        WebSocketMessage(
+                                            WebSocketMessage.EVENT_SIGNATURE_CHALLENGE,
+                                            signature
+                                        )
+                                    )
+                                }
 
-                    Log.d(
-                        "QRCodeScannerViewModel",
-                        "API call successful. Response: ${response.body()}"
-                    )
-                } else if (response.code() == 401) {
-                    // Handle unauthorized response (401 Unauthorized)
-                    val history = History(
-                        site = getBaseUrl(qr.apiUrl),
-                        isAllowed = false,
-                        date = LocalDateTime.now()
-                    )
-                    historyViewModel.addHistory(history)
+                                WebSocketMessage.EVENT_SIGNATURE_RESULT -> {
+                                    val history = History(
+                                        site = getBaseUrl(qr.apiUrl),
+                                        isAllowed = true,
+                                        date = LocalDateTime.now()
+                                    )
+                                    historyRepository.addHistory(history)
+                                    webSocket.close()
+                                }
 
-                    Log.d(
-                        "QRCodeScannerViewModel",
-                        "API call unauthorized. Response: ${response.body()}"
-                    )
-                } else {
-                    // Handle other error responses (if needed)
-                    Log.e(
-                        "QRCodeScannerViewModel",
-                        "API call failed. Error code: ${response.code()}"
-                    )
-                    // ...
+                                else -> {}
+                            }
+                        }.launchIn(viewModelScope)
                 }
-            } catch (e: Exception) {
-                // Handle the error (e.g., network error, HTTP exception)
-                Log.e("QRCodeScannerViewModel", "Error during API call: ${e.message}")
-                // ...
+
+                is Resource.Error -> {
+                    Log.i(TAG, "Websocket not found.")
+                }
             }
         }
     }
 
+    private suspend fun getAuthData(
+        qr: QRData,
+    ): AuthData {
+        val authData = AuthData(qr.wsId)
+        val passportFlow = passportRepository.getPassport()
+        passportFlow.collect { passport ->
+            for (attribute in qr.attributes) {
+                when (attribute) {
+                    "documentNumber" -> {
+                        authData.documentNumber = passport.documentNumber
+                        authData.documentNumberSignature = passport.documentNumberSignature
+                    }
+
+                    "documentType" -> {
+                        authData.documentType = passport.documentType
+                        authData.documentTypeSignature = passport.documentTypeSignature
+                    }
+
+                    "issuer" -> {
+                        authData.issuer = passport.issuer
+                        authData.issuerSignature = passport.issuerSignature
+                    }
+
+                    "name" -> {
+                        authData.name = passport.name
+                        authData.nameSignature = passport.nameSignature
+                    }
+
+                    "nationality" -> {
+                        authData.nationality = passport.nationality
+                        authData.nationalitySignature = passport.nationalitySignature
+                    }
+
+                    "birthDate" -> {
+                        authData.birthDate = passport.birthDate
+                        authData.birthDateSignature = passport.birthDateSignature
+                    }
+
+                    "sex" -> {
+                        authData.sex = passport.sex
+                        authData.sexSignature = passport.sexSignature
+                    }
+
+                    "issueDate" -> {
+                        authData.issueDate = passport.issueDate
+                        authData.issueDateSignature = passport.issueDateSignature
+                    }
+
+                    "expiryDate" -> {
+                        authData.expiryDate = passport.expiryDate
+                        authData.expiryDateSignature = passport.expiryDateSignature
+                    }
+                }
+            }
+        }
+        return authData
+    }
+
+    private fun addHistory(history: History) {
+        viewModelScope.launch {
+            historyRepository.addHistory(history)
+        }
+    }
+
     fun getBaseUrl(fullUrl: String): String {
-        val url = URL(fullUrl)
-        return "${url.protocol}://${url.host}"
+        val uri = URI(fullUrl)
+        return uri.host
     }
 
 

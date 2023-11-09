@@ -1,13 +1,11 @@
 package com.example.vpassport.viewmodel
 
-import android.content.ContentValues.TAG
-import android.content.Intent
-import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
 import android.util.Log
-import com.example.vpassport.model.data.DataGroup
-import com.google.android.gms.common.util.IOUtils
+import com.example.vpassport.model.data.DataGroupBundle
+import com.example.vpassport.model.data.websocket.CAData
+import com.example.vpassport.util.MediatorPassportService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.sf.scuba.smartcards.CardService
@@ -19,45 +17,64 @@ import org.jmrtd.PassportService.NORMAL_MAX_TRANCEIVE_LENGTH
 import org.jmrtd.lds.CardSecurityFile
 import org.jmrtd.lds.ChipAuthenticationPublicKeyInfo
 import org.jmrtd.lds.PACEInfo
+import org.jmrtd.lds.SODFile
 import org.jmrtd.lds.icao.DG14File
 import org.jmrtd.lds.icao.DG1File
 import org.jmrtd.lds.icao.DG2File
+import java.security.KeyPair
 
-class PassportReader() {
+class PassportReader(
+    private val tag: Tag
+) {
 
-    suspend fun getDataGroup(
-        tag: Tag,
+    companion object {
+        private const val TAG = "PassportReader"
+    }
+
+    private val cardService: CardService
+    private val passportService: MediatorPassportService
+
+    init {
+        val isoDep = IsoDep.get(tag)
+        isoDep.timeout = 10000
+        cardService = CardService.getInstance(isoDep)
+        passportService = MediatorPassportService(
+            cardService,
+            NORMAL_MAX_TRANCEIVE_LENGTH,
+            DEFAULT_MAX_BLOCKSIZE,
+            true,
+            false
+        )
+        cardService.open()
+        passportService.open()
+    }
+
+    /**
+     * Retrieves data groups needed from the detected passport.
+     *
+     * @param documentNumber passport document number.
+     * @param dateOfBirth user's date of birth.
+     * @param dateOfExpiry passport's date of expiry.
+     */
+    suspend fun getDataGroups(
         documentNumber: String,
         dateOfBirth: String,
         dateOfExpiry: String
-    ): DataGroup {
+    ): DataGroupBundle {
         return withContext(Dispatchers.IO) {
             try {
-                val isoDep = IsoDep.get(tag)
-                isoDep.timeout = 10000
-                val cardService = CardService.getInstance(isoDep)
-                cardService.open()
                 val bacKey = createBACKey(documentNumber, dateOfBirth, dateOfExpiry)
-                val passportService = PassportService(
-                    cardService,
-                    NORMAL_MAX_TRANCEIVE_LENGTH,
-                    DEFAULT_MAX_BLOCKSIZE,
-                    true,
-                    false
-                )
-                passportService.open()
-                doPACEorBAC(passportService, bacKey)
+                doPACEorBAC(bacKey)
                 val dG1File = readDG1File(passportService)
                 val dG2File = readDG2File(passportService)
                 val dG14File = readDG14File(passportService)
-                DataGroup(dG1File, dG2File, dG14File)
+                val sodFile = readSODFile(passportService)
+                DataGroupBundle(dG1File, dG2File, dG14File, sodFile)
             } catch (e: Exception) {
                 throw e
             }
         }
     }
-
-
 
     private fun createBACKey(
         documentNumber: String,
@@ -67,8 +84,14 @@ class PassportReader() {
         return BACKey(documentNumber, dateOfBirth, dateOfExpiry)
     }
 
-    private fun doPACEorBAC(passportService: PassportService, bacKey: BACKeySpec) {
-        var doPACE = false
+    /**
+     * Initiate secure communication channel with PACE or BAC Protocol.
+     *
+     * @param passportService current passportService instance.
+     * @param bacKey static key given by the user.
+     */
+    private fun doPACEorBAC(bacKey: BACKeySpec) {
+        var isPACESupported = false
         try {
             val cardSecurity = CardSecurityFile(
                 passportService.getInputStream(
@@ -76,7 +99,7 @@ class PassportReader() {
                     DEFAULT_MAX_BLOCKSIZE
                 )
             )
-            for (info in cardSecurity.getSecurityInfos()) {
+            for (info in cardSecurity.securityInfos) {
                 if (info is PACEInfo) {
                     passportService.doPACE(
                         bacKey,
@@ -84,25 +107,23 @@ class PassportReader() {
                         PACEInfo.toParameterSpec(info.parameterId),
                         null
                     )
-                    doPACE = true
+                    isPACESupported = true
                 }
             }
         } catch (e: Exception) {
-            Log.w(TAG, e)
+            Log.w(TAG, "PACE not supported, reverting to BAC")
         }
 
-        passportService.sendSelectApplet(doPACE)
-
-        if (!doPACE) {
-            try {
-                passportService.getInputStream(PassportService.EF_COM).read()
-            } catch (e: Exception) {
-                passportService.doBAC(bacKey)
-            }
+        passportService.sendSelectApplet(isPACESupported)
+        if (!isPACESupported) {
+            passportService.doBAC(bacKey)
         }
     }
 
-    private fun doCA(passportService: PassportService, dataGroup: DataGroup) {
+    fun livelinessTest(
+        pcdKeyPair: KeyPair,
+        dataGroup: DataGroupBundle
+    ): ByteArray? {
         try {
             val dg14 = dataGroup.dG14File
             for (securityInfo in dg14.securityInfos) {
@@ -111,13 +132,20 @@ class PassportReader() {
                         securityInfo.keyId,
                         ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_AES_CBC_CMAC_256,
                         securityInfo.protocolOIDString,
+                        securityInfo.subjectPublicKey)
+                    return passportService.livelinessTest(
+                        securityInfo.keyId,
+                        ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_AES_CBC_CMAC_256,
+                        securityInfo.protocolOIDString,
                         securityInfo.subjectPublicKey,
+                        pcdKeyPair
                     )
                 }
             }
         } catch (e: Exception) {
             Log.w(TAG, e)
         }
+        return null
     }
 
     private fun readDG1File(passportService: PassportService): DG1File {
@@ -133,5 +161,10 @@ class PassportReader() {
     private fun readDG14File(passportService: PassportService): DG14File {
         val dg14 = passportService.getInputStream(PassportService.EF_DG14, DEFAULT_MAX_BLOCKSIZE)
         return DG14File(dg14)
+    }
+
+    private fun readSODFile(passportService: PassportService): SODFile {
+        val sodFile = passportService.getInputStream(PassportService.EF_SOD, DEFAULT_MAX_BLOCKSIZE)
+        return SODFile(sodFile)
     }
 }

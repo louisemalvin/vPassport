@@ -8,6 +8,7 @@ import com.example.vpassport.model.repo.DefaultHistoryRepository
 import com.example.vpassport.model.repo.interfaces.HistoryRepository
 import dagger.Module
 import dagger.Provides
+import dagger.Reusable
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
@@ -17,8 +18,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object RoomModule {
 
-    @Singleton
     @Provides
+    @Reusable
     fun provideHistoryDatabase(@ApplicationContext appContext: Context): HistoryDatabase {
         return Room.databaseBuilder(
             appContext,
@@ -26,13 +27,14 @@ object RoomModule {
             "history.db"
         ).build()
     }
-    @Singleton
     @Provides
+    @Reusable
     fun provideHistoryDao(historyDatabase: HistoryDatabase) : HistoryDao {
         return historyDatabase.dao
     }
 
     @Provides
+    @Reusable
     fun provideHistoryRepository(historyDao: HistoryDao) : HistoryRepository {
         return DefaultHistoryRepository(historyDao)
     }
